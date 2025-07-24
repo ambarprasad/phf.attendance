@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attendance Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
         * {
             margin: 0;
             padding: 0;
@@ -63,7 +67,8 @@
             width: 70px;
             height: 70px;
             border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
+            border-radius: 50%;
+            font-family: 'Silkscreen', monospace;
             font-size: 22px;
             font-weight: 700;
             cursor: pointer;
@@ -151,7 +156,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1419 100%);
             min-height: 100vh;
             padding: 20px;
@@ -188,30 +193,30 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
+        .toggles-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
         .person-card {
             background: rgba(40, 40, 60, 0.6);
             border-radius: 16px;
             padding: 25px;
-            margin-bottom: 20px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .person-name {
-            font-size: 22px;
-            font-weight: 600;
-            color: #e0e0e0;
-            margin-bottom: 20px;
+            flex: 1;
             text-align: center;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
 
         .attendance-button {
-            width: 100%;
+            width: 80px;
             height: 80px;
             border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            font-size: 18px;
+            border-radius: 50%;
+            font-family: 'Silkscreen', monospace;
+            font-size: 14px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -220,6 +225,10 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             
             /* Dark metallic base */
             background: 
@@ -395,6 +404,250 @@
             color: #ffc107;
         }
 
+        .calendar-container {
+            background: rgba(40, 40, 60, 0.6);
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .calendar-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #e0e0e0;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .calendar-month {
+            font-size: 16px;
+            font-weight: 500;
+            color: #b0b0b0;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: #888;
+            padding: 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 400;
+            color: #b0b0b0;
+            background: rgba(50, 50, 70, 0.6);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-day.other-month {
+            color: #555;
+            background: rgba(30, 30, 40, 0.4);
+        }
+
+        .calendar-day.today {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+            color: #e0e0e0;
+            font-weight: 600;
+        }
+
+        .calendar-day.has-attendance {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+            box-shadow: 
+                0 0 15px rgba(0, 255, 136, 0.3),
+                inset 0 0 10px rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+        }
+
+        .calendar-day.has-attendance.both-present {
+            background: rgba(0, 255, 136, 0.4);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 136, 0.5),
+                inset 0 0 15px rgba(0, 255, 136, 0.2);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                box-shadow: 
+                    0 0 20px rgba(0, 255, 136, 0.5),
+                    inset 0 0 15px rgba(0, 255, 136, 0.2);
+            }
+        }
+
+        async function loadCalendarData() {
+            try {
+                const response = await fetch(`${APPS_SCRIPT_URL}?action=loadCalendar`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    calendarData = result.calendar || {};
+                    updateCalendar();
+                    return true;
+                } else {
+                    throw new Error(result.error || 'Failed to load calendar data');
+                }
+            } catch (error) {
+                console.error('Error loading calendar data:', error);
+                // Create empty calendar if loading fails
+                calendarData = {};
+                updateCalendar();
+                return false;
+            }
+        }
+
+        function updateCalendar() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            
+            // Update month display
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('calendarMonth').textContent = `${monthNames[month]} ${year}`;
+            
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+            
+            // Get previous month's last days
+            const prevMonth = new Date(year, month, 0);
+            const daysInPrevMonth = prevMonth.getDate();
+            
+            const calendarGrid = document.getElementById('calendarGrid');
+            calendarGrid.innerHTML = '';
+            
+            // Add day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-header';
+                header.textContent = day;
+                calendarGrid.appendChild(header);
+            });
+            
+            // Add previous month's trailing days
+            for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day other-month';
+                dayElement.textContent = day;
+                calendarGrid.appendChild(dayElement);
+            }
+            
+            // Add current month's days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = day;
+                
+                // Check if it's today
+                const today = new Date();
+                if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+                    dayElement.classList.add('today');
+                }
+                
+                // Check attendance for this day
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayData = calendarData[dateKey];
+                
+                if (dayData) {
+                    const didiPresent = dayData.didi === 'present';
+                    const cookPresent = dayData.cook === 'present';
+                    
+                    if (didiPresent || cookPresent) {
+                        dayElement.classList.add('has-attendance');
+                        
+                        if (didiPresent && cookPresent) {
+                            dayElement.classList.add('both-present');
+                        }
+                    }
+                }
+                
+                calendarGrid.appendChild(dayElement);
+            }
+            
+            // Add next month's leading days to fill the grid
+            const totalCells = calendarGrid.children.length;
+            const remainingCells = 42 - totalCells + 7; // 6 weeks * 7 days + 7 headers
+            
+            for (let day = 1; day <= remainingCells && totalCells < 42 + 7; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day other-month';
+                dayElement.textContent = day;
+                calendarGrid.appendChild(dayElement);
+            }
+            to {
+                box-shadow: 
+                    0 0 25px rgba(0, 255, 136, 0.7),
+                    inset 0 0 20px rgba(0, 255, 136, 0.3);
+            }
+        }
+
+        .calendar-legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #888;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .legend-dot.partial {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+
+        .legend-dot.full {
+            background: rgba(0, 255, 136, 0.4);
+            border-color: #00ff88;
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
+        }
+
         @media (max-width: 480px) {
             .container {
                 margin: 10px;
@@ -405,36 +658,23 @@
                 font-size: 24px;
             }
             
-            .person-name {
-                font-size: 20px;
+            .toggles-container {
+                flex-direction: column;
+                gap: 15px;
             }
             
             .attendance-button {
+                width: 70px;
                 height: 70px;
-                font-size: 16px;
+                font-size: 12px;
             }
-        }
-
-        /* Loading animation */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #00ff88;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
     <!-- PIN Lock Screen -->
     <div class="container" id="lockScreen">
-        <h1>🔐 Enter PIN</h1>
+        <h1>Enter PIN</h1>
         
         <div class="pin-container">
             <div class="pin-display">
@@ -465,35 +705,35 @@
 
     <!-- Main App (hidden initially) -->
     <div class="container" id="mainApp" style="display: none;">
-        <h1>📋 Attendance Tracker</h1>
+        <h1>Attendance Tracker</h1>
         
         <div class="date-display" id="dateDisplay">
             Today: Loading...
         </div>
 
-        <div class="person-card">
-            <div class="person-name">👩‍🏠 Didi</div>
-            <button class="attendance-button absent" id="didiButton" onclick="toggleAttendance('didi')">
-                Absent
-            </button>
-            <div class="timestamp" id="didiTimestamp">Not updated today</div>
-        </div>
+        <div class="toggles-container">
+            <div class="person-card">
+                <button class="attendance-button absent" id="didiButton" onclick="toggleAttendance('didi')">
+                    Didi
+                </button>
+                <div class="timestamp" id="didiTimestamp">Not updated today</div>
+            </div>
 
-        <div class="person-card">
-            <div class="person-name">👨‍🍳 Cook</div>
-            <button class="attendance-button absent" id="cookButton" onclick="toggleAttendance('cook')">
-                Absent
-            </button>
-            <div class="timestamp" id="cookTimestamp">Not updated today</div>
+            <div class="person-card">
+                <button class="attendance-button absent" id="cookButton" onclick="toggleAttendance('cook')">
+                    Cook
+                </button>
+                <div class="timestamp" id="cookTimestamp">Not updated today</div>
+            </div>
         </div>
 
         <div class="sync-status" id="syncStatus">Ready</div>
 
         <div class="stats-container">
-            <div class="stats-title">📊 Attendance Summary</div>
+            <div class="stats-title">Attendance Summary</div>
             
             <div class="person-stats">
-                <div class="person-stats-name">👩‍🏠 Didi</div>
+                <div class="person-stats-name">Didi</div>
                 <div class="stats-grid">
                     <div class="stat-item">
                         <div class="stat-label">Last 7 Days</div>
@@ -507,7 +747,7 @@
             </div>
 
             <div class="person-stats">
-                <div class="person-stats-name">👨‍🍳 Cook</div>
+                <div class="person-stats-name">Cook</div>
                 <div class="stats-grid">
                     <div class="stat-item">
                         <div class="stat-label">Last 7 Days</div>
@@ -517,6 +757,24 @@
                         <div class="stat-label">Last 30 Days</div>
                         <div class="stat-value" id="cook30days">0/30</div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="calendar-container">
+            <div class="calendar-title">Calendar View</div>
+            <div class="calendar-month" id="calendarMonth">Loading...</div>
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Calendar will be populated by JavaScript -->
+            </div>
+            <div class="calendar-legend">
+                <div class="legend-item">
+                    <div class="legend-dot partial"></div>
+                    <span>Partial</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot full"></div>
+                    <span>Both Present</span>
                 </div>
             </div>
         </div>
@@ -537,6 +795,7 @@
             didi: { status: 'absent', timestamp: null },
             cook: { status: 'absent', timestamp: null }
         };
+        let calendarData = {}; // Will store historical attendance data
 
         // Google Apps Script API functions
         async function loadTodayData() {
@@ -554,6 +813,7 @@
                 if (result.success) {
                     attendanceData = result.data;
                     await loadStats();
+                    await loadCalendarData();
                     showSyncStatus('Data loaded successfully', 'success');
                     return true;
                 } else {
@@ -631,8 +891,7 @@
 
         function showSyncStatus(message, type) {
             const statusElement = document.getElementById('syncStatus');
-            statusElement.innerHTML = type === 'loading' ? 
-                `<span class="loading"></span> ${message}` : message;
+            statusElement.textContent = message;
             statusElement.className = `sync-status show ${type}`;
             
             // Hide success/error messages after 3 seconds
@@ -790,6 +1049,7 @@
             updateAttendanceData().then(success => {
                 if (success) {
                     loadStats(); // Refresh stats after successful update
+                    loadCalendarData(); // Refresh calendar after successful update
                 }
             });
         }
@@ -801,12 +1061,12 @@
             
             if (attendanceData.didi.status === 'present') {
                 didiButton.className = 'attendance-button present';
-                didiButton.textContent = 'Present';
+                didiButton.textContent = 'Didi';
                 didiTimestamp.textContent = attendanceData.didi.timestamp ? 
                     `Updated: ${attendanceData.didi.timestamp}` : 'Present';
             } else {
                 didiButton.className = 'attendance-button absent';
-                didiButton.textContent = 'Absent';
+                didiButton.textContent = 'Didi';
                 didiTimestamp.textContent = 'Not updated today';
             }
 
@@ -816,12 +1076,12 @@
             
             if (attendanceData.cook.status === 'present') {
                 cookButton.className = 'attendance-button present';
-                cookButton.textContent = 'Present';
+                cookButton.textContent = 'Cook';
                 cookTimestamp.textContent = attendanceData.cook.timestamp ? 
                     `Updated: ${attendanceData.cook.timestamp}` : 'Present';
             } else {
                 cookButton.className = 'attendance-button absent';
-                cookButton.textContent = 'Absent';
+                cookButton.textContent = 'Cook';
                 cookTimestamp.textContent = 'Not updated today';
             }
         }
@@ -895,3 +1155,4 @@
     </script>
 </body>
 </html>
+                
