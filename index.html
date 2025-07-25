@@ -544,6 +544,10 @@
 
         // Google Apps Script API functions with better error handling and JSONP fallback
         async function loadTodayData() {
+                if (location.hostname.endsWith("github.io")) {
+        debugLog('Using JSONP fallback due to GitHub Pages CORS');
+        return loadTodayDataJSONP();
+    }
             try {
                 showSyncStatus('Loading data...', 'loading');
                 debugLog('Starting loadTodayData');
@@ -625,7 +629,11 @@
         }
 
         async function updateAttendanceData() {
-            try {
+             if (location.hostname.endsWith("github.io")) {
+        debugLog('Using alternative POST method due to GitHub Pages CORS');
+        return updateAttendanceDataAlternative();
+    }
+                        try {
                 showSyncStatus('Syncing to Google Sheets...', 'loading');
                 debugLog('Starting updateAttendanceData');
                 
