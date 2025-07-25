@@ -574,7 +574,6 @@
                 
                 if (result.success) {
                     attendanceData = result.data;
-                        updateUI(); // <-- Added to update UI from loaded data
                     await loadStats();
                     showSyncStatus('Data loaded successfully', 'success');
                     return true;
@@ -606,7 +605,6 @@
                     debugLog('JSONP response:', result);
                     if (result.success) {
                         attendanceData = result.data;
-                        updateUI(); // <-- Added to update UI from loaded data
                         loadStats();
                         showSyncStatus('Data loaded successfully (JSONP)', 'success');
                         resolve(true);
@@ -965,7 +963,7 @@ function updateStatsUI(stats) {
             });
         }
 
-        ffunction updateUI() {
+        function updateUI() {
     debugLog("Updating UI based on attendanceData:", attendanceData);
 
     ['didi', 'cook'].forEach(role => {
@@ -983,8 +981,6 @@ function updateStatsUI(stats) {
         timestampElem.textContent = time ? `Last marked at: ${time}` : '';
     });
 }
-
-
         function scheduleReset() {
             const now = new Date();
             const midnight = new Date();
