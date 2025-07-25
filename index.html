@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
         * {
             margin: 0;
             padding: 0;
@@ -404,250 +403,6 @@
             color: #ffc107;
         }
 
-        .calendar-container {
-            background: rgba(40, 40, 60, 0.6);
-            border-radius: 16px;
-            padding: 25px;
-            margin-top: 30px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .calendar-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #e0e0e0;
-            margin-bottom: 20px;
-            text-align: center;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-        }
-
-        .calendar-month {
-            font-size: 16px;
-            font-weight: 500;
-            color: #b0b0b0;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .calendar-header {
-            text-align: center;
-            font-size: 12px;
-            font-weight: 500;
-            color: #888;
-            padding: 8px 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .calendar-day {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 400;
-            color: #b0b0b0;
-            background: rgba(50, 50, 70, 0.6);
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        .calendar-day.other-month {
-            color: #555;
-            background: rgba(30, 30, 40, 0.4);
-        }
-
-        .calendar-day.today {
-            background: rgba(102, 126, 234, 0.3);
-            border-color: #667eea;
-            color: #e0e0e0;
-            font-weight: 600;
-        }
-
-        .calendar-day.has-attendance {
-            background: rgba(0, 255, 136, 0.2);
-            border-color: #00ff88;
-            box-shadow: 
-                0 0 15px rgba(0, 255, 136, 0.3),
-                inset 0 0 10px rgba(0, 255, 136, 0.1);
-            color: #00ff88;
-        }
-
-        .calendar-day.has-attendance.both-present {
-            background: rgba(0, 255, 136, 0.4);
-            box-shadow: 
-                0 0 20px rgba(0, 255, 136, 0.5),
-                inset 0 0 15px rgba(0, 255, 136, 0.2);
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes glow {
-            from {
-                box-shadow: 
-                    0 0 20px rgba(0, 255, 136, 0.5),
-                    inset 0 0 15px rgba(0, 255, 136, 0.2);
-            }
-        }
-
-        async function loadCalendarData() {
-            try {
-                const response = await fetch(`${APPS_SCRIPT_URL}?action=loadCalendar`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    calendarData = result.calendar || {};
-                    updateCalendar();
-                    return true;
-                } else {
-                    throw new Error(result.error || 'Failed to load calendar data');
-                }
-            } catch (error) {
-                console.error('Error loading calendar data:', error);
-                // Create empty calendar if loading fails
-                calendarData = {};
-                updateCalendar();
-                return false;
-            }
-        }
-
-        function updateCalendar() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            
-            // Update month display
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                              'July', 'August', 'September', 'October', 'November', 'December'];
-            document.getElementById('calendarMonth').textContent = `${monthNames[month]} ${year}`;
-            
-            // Get first day of month and number of days
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const daysInMonth = lastDay.getDate();
-            const startingDayOfWeek = firstDay.getDay();
-            
-            // Get previous month's last days
-            const prevMonth = new Date(year, month, 0);
-            const daysInPrevMonth = prevMonth.getDate();
-            
-            const calendarGrid = document.getElementById('calendarGrid');
-            calendarGrid.innerHTML = '';
-            
-            // Add day headers
-            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            dayHeaders.forEach(day => {
-                const header = document.createElement('div');
-                header.className = 'calendar-header';
-                header.textContent = day;
-                calendarGrid.appendChild(header);
-            });
-            
-            // Add previous month's trailing days
-            for (let i = startingDayOfWeek - 1; i >= 0; i--) {
-                const day = daysInPrevMonth - i;
-                const dayElement = document.createElement('div');
-                dayElement.className = 'calendar-day other-month';
-                dayElement.textContent = day;
-                calendarGrid.appendChild(dayElement);
-            }
-            
-            // Add current month's days
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'calendar-day';
-                dayElement.textContent = day;
-                
-                // Check if it's today
-                const today = new Date();
-                if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
-                    dayElement.classList.add('today');
-                }
-                
-                // Check attendance for this day
-                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const dayData = calendarData[dateKey];
-                
-                if (dayData) {
-                    const didiPresent = dayData.didi === 'present';
-                    const cookPresent = dayData.cook === 'present';
-                    
-                    if (didiPresent || cookPresent) {
-                        dayElement.classList.add('has-attendance');
-                        
-                        if (didiPresent && cookPresent) {
-                            dayElement.classList.add('both-present');
-                        }
-                    }
-                }
-                
-                calendarGrid.appendChild(dayElement);
-            }
-            
-            // Add next month's leading days to fill the grid
-            const totalCells = calendarGrid.children.length;
-            const remainingCells = 42 - totalCells + 7; // 6 weeks * 7 days + 7 headers
-            
-            for (let day = 1; day <= remainingCells && totalCells < 42 + 7; day++) {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'calendar-day other-month';
-                dayElement.textContent = day;
-                calendarGrid.appendChild(dayElement);
-            }
-            to {
-                box-shadow: 
-                    0 0 25px rgba(0, 255, 136, 0.7),
-                    inset 0 0 20px rgba(0, 255, 136, 0.3);
-            }
-        }
-
-        .calendar-legend {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 15px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: #888;
-        }
-
-        .legend-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .legend-dot.partial {
-            background: rgba(0, 255, 136, 0.2);
-            border-color: #00ff88;
-        }
-
-        .legend-dot.full {
-            background: rgba(0, 255, 136, 0.4);
-            border-color: #00ff88;
-            box-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
-        }
-
         @media (max-width: 480px) {
             .container {
                 margin: 10px;
@@ -760,24 +515,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="calendar-container">
-            <div class="calendar-title">Calendar View</div>
-            <div class="calendar-month" id="calendarMonth">Loading...</div>
-            <div class="calendar-grid" id="calendarGrid">
-                <!-- Calendar will be populated by JavaScript -->
-            </div>
-            <div class="calendar-legend">
-                <div class="legend-item">
-                    <div class="legend-dot partial"></div>
-                    <span>Partial</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-dot full"></div>
-                    <span>Both Present</span>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -787,6 +524,9 @@
         // Google Apps Script URL
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8qvLcC1_EeQY0k6hlD7T8K-J-_xTOPOiJLbz_krGnaW07wvxIyOUzFsXDh2VitaeyxQ/exec';
         
+        // Debug mode - set to true to see detailed logs
+        const DEBUG_MODE = true;
+        
         // App state
         let currentPin = [];
         let isUnlocked = false;
@@ -795,50 +535,197 @@
             didi: { status: 'absent', timestamp: null },
             cook: { status: 'absent', timestamp: null }
         };
-        let calendarData = {}; // Will store historical attendance data
 
-        // Google Apps Script API functions
+        function debugLog(message, data = null) {
+            if (DEBUG_MODE) {
+                console.log(`[ATTENDANCE TRACKER] ${message}`, data || '');
+            }
+        }
+
+        // Google Apps Script API functions with better error handling and JSONP fallback
         async function loadTodayData() {
             try {
                 showSyncStatus('Loading data...', 'loading');
+                debugLog('Starting loadTodayData');
                 
-                const response = await fetch(`${APPS_SCRIPT_URL}?action=loadToday`);
+                const url = `${APPS_SCRIPT_URL}?action=loadToday&cacheBust=${Date.now()}`;
+                debugLog('Fetching URL:', url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    redirect: 'follow'
+                });
+                
+                debugLog('Response status:', response.status);
+                debugLog('Response headers:', Object.fromEntries(response.headers.entries()));
                 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
                 const result = await response.json();
+                debugLog('Response data:', result);
                 
                 if (result.success) {
                     attendanceData = result.data;
                     await loadStats();
-                    await loadCalendarData();
                     showSyncStatus('Data loaded successfully', 'success');
                     return true;
                 } else {
                     throw new Error(result.error || 'Failed to load data');
                 }
             } catch (error) {
+                debugLog('Error in loadTodayData:', error);
                 console.error('Error loading data:', error);
-                showSyncStatus('Failed to load data', 'error');
+                
+                // Try JSONP fallback for CORS issues
+                if (error.message.includes('CORS') || error.message.includes('fetch')) {
+                    debugLog('Attempting JSONP fallback');
+                    return await loadTodayDataJSONP();
+                }
+                
+                showSyncStatus(`Load failed: ${error.message}`, 'error');
                 return false;
             }
+        }
+
+        // JSONP fallback for CORS issues
+        function loadTodayDataJSONP() {
+            return new Promise((resolve) => {
+                const callbackName = 'loadTodayCallback_' + Date.now();
+                const script = document.createElement('script');
+                
+                window[callbackName] = function(result) {
+                    debugLog('JSONP response:', result);
+                    if (result.success) {
+                        attendanceData = result.data;
+                        loadStats();
+                        showSyncStatus('Data loaded successfully (JSONP)', 'success');
+                        resolve(true);
+                    } else {
+                        showSyncStatus('Failed to load data (JSONP)', 'error');
+                        resolve(false);
+                    }
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                };
+                
+                script.onerror = function() {
+                    showSyncStatus('Failed to load data', 'error');
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                    resolve(false);
+                };
+                
+                script.src = `${APPS_SCRIPT_URL}?action=loadToday&callback=${callbackName}&cacheBust=${Date.now()}`;
+                document.head.appendChild(script);
+            });
         }
 
         async function updateAttendanceData() {
             try {
                 showSyncStatus('Syncing to Google Sheets...', 'loading');
+                debugLog('Starting updateAttendanceData');
+                
+                const requestBody = {
+                    action: 'updateAttendance',
+                    attendanceData: attendanceData,
+                    timestamp: new Date().toISOString(),
+                    origin: window.location.origin
+                };
+                
+                debugLog('Request body:', requestBody);
                 
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    redirect: 'follow',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        action: 'updateAttendance',
-                        attendanceData: attendanceData
-                    })
+                    body: JSON.stringify(requestBody)
+                });
+                
+                debugLog('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                debugLog('Response data:', result);
+                
+                if (result.success) {
+                    showSyncStatus('Synced to Google Sheets', 'success');
+                    return true;
+                } else {
+                    throw new Error(result.error || 'Failed to update data');
+                }
+            } catch (error) {
+                debugLog('Error in updateAttendanceData:', error);
+                console.error('Error updating data:', error);
+                
+                // Try alternative sync method for CORS issues
+                if (error.message.includes('CORS') || error.message.includes('fetch')) {
+                    debugLog('Attempting alternative sync method');
+                    return await updateAttendanceDataAlternative();
+                }
+                
+                showSyncStatus(`Sync failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Alternative sync method using form submission
+        function updateAttendanceDataAlternative() {
+            return new Promise((resolve) => {
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.name = 'sync_frame';
+                document.body.appendChild(iframe);
+                
+                const form = document.createElement('form');
+                form.target = 'sync_frame';
+                form.method = 'POST';
+                form.action = APPS_SCRIPT_URL;
+                
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'updateAttendance';
+                form.appendChild(actionInput);
+                
+                const dataInput = document.createElement('input');
+                dataInput.type = 'hidden';
+                dataInput.name = 'attendanceData';
+                dataInput.value = JSON.stringify(attendanceData);
+                form.appendChild(dataInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+                
+                setTimeout(() => {
+                    document.body.removeChild(form);
+                    document.body.removeChild(iframe);
+                    showSyncStatus('Sync attempted (alternative)', 'success');
+                    resolve(true);
+                }, 2000);
+            });
+        }
+
+        async function loadStats() {
+            try {
+                debugLog('Starting loadStats');
+                
+                const url = `${APPS_SCRIPT_URL}?action=loadStats&cacheBust=${Date.now()}`;
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    redirect: 'follow'
                 });
                 
                 if (!response.ok) {
@@ -846,29 +733,7 @@
                 }
                 
                 const result = await response.json();
-                
-                if (result.success) {
-                    showSyncStatus('✅ Synced to Google Sheets', 'success');
-                    return true;
-                } else {
-                    throw new Error(result.error || 'Failed to update data');
-                }
-            } catch (error) {
-                console.error('Error updating data:', error);
-                showSyncStatus('❌ Sync failed', 'error');
-                return false;
-            }
-        }
-
-        async function loadStats() {
-            try {
-                const response = await fetch(`${APPS_SCRIPT_URL}?action=loadStats`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const result = await response.json();
+                debugLog('Stats response:', result);
                 
                 if (result.success) {
                     const stats = result.stats;
@@ -884,6 +749,7 @@
                     throw new Error(result.error || 'Failed to load stats');
                 }
             } catch (error) {
+                debugLog('Error in loadStats:', error);
                 console.error('Error loading stats:', error);
                 return false;
             }
@@ -1031,13 +897,13 @@
             attendanceData[person].status = newStatus;
             
             if (newStatus === 'present') {
-                // Store timestamp in India time
+                // Store timestamp in India time with 24-hour format
                 const now = new Date();
                 attendanceData[person].timestamp = now.toLocaleString('en-IN', {
                     timeZone: 'Asia/Kolkata',
-                    hour: 'numeric',
+                    hour: '2-digit',
                     minute: '2-digit',
-                    hour12: true
+                    hour12: false
                 });
             } else {
                 attendanceData[person].timestamp = null;
@@ -1049,7 +915,6 @@
             updateAttendanceData().then(success => {
                 if (success) {
                     loadStats(); // Refresh stats after successful update
-                    loadCalendarData(); // Refresh calendar after successful update
                 }
             });
         }
