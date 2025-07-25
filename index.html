@@ -633,7 +633,8 @@
                     action: 'updateAttendance',
                     attendanceData: attendanceData,
                     timestamp: new Date().toISOString(),
-                    origin: window.location.origin
+                    origin: window.location.origin,
+                    date: new Date().toLocaleDateString('en-CA') // YYYY-MM-DD format
                 };
                 
                 debugLog('Request body:', requestBody);
@@ -659,7 +660,7 @@
                 debugLog('Response data:', result);
                 
                 if (result.success) {
-                    showSyncStatus('Synced to Google Sheets', 'success');
+                    showSyncStatus('Synced to Google Sheets ✓', 'success');
                     return true;
                 } else {
                     throw new Error(result.error || 'Failed to update data');
