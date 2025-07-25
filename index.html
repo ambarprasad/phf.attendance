@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* PIN Lock Screen Styles */
+        .pin-container {
+            text-align: center;
+        }
+
+        .pin-display {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .pin-dot {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .pin-dot.filled {
+            background: #667eea;
+            border-color: #667eea;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
+        }
+
+        .pin-error {
+            color: #ff6b6b;
+            font-size: 14px;
+            margin-bottom: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+
+        .pin-error.show {
+            opacity: 1;
+        }
+
+        .pin-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+
+        .pin-key {
+            width: 70px;
+            height: 70px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            font-family: 'Silkscreen', monospace;
+            font-size: 22px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+            
+            /* Dark brushed metal effect */
+            background: 
+                linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 25%, #2a2a2a 50%, #3a3a3a 75%, #4a4a4a 100%),
+                linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
+            background-size: 100% 100%, 20px 20px;
+            
+            color: #e0e0e0;
+            letter-spacing: 1px;
+        }
+
+        /* Brushed metal animation effect */
+        .pin-key::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .pin-key:hover::before {
+            left: 100%;
+        }
+
+        .pin-key:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 12px 20px rgba(0, 0, 0, 0.3),
+                inset 0 2px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+            color: #f0f0f0;
+        }
+
+        .pin-key:active {
+            transform: translateY(1px);
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .pin-key.pin-clear {
+            border-color: #ff6b6b;
+            background: 
+                linear-gradient(135deg, #4a3a3a 0%, #3a2a2a 25%, #2a1a1a 50%, #3a2a2a 75%, #4a3a3a 100%),
+                linear-gradient(45deg, transparent 30%, rgba(255, 107, 107, 0.1) 50%, transparent 70%);
+            background-size: 100% 100%, 20px 20px;
+            color: #ff6b6b;
+            font-size: 16px;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+        }
+
+        .pin-key.pin-clear:hover {
+            border-color: #ff8a80;
+            color: #ff8a80;
+            text-shadow: 0 0 15px rgba(255, 138, 128, 0.5);
+        }
+
+        .pin-key.pin-delete {
+            border-color: #ffa726;
+            background: 
+                linear-gradient(135deg, #4a4a3a 0%, #3a3a2a 25%, #2a2a1a 50%, #3a3a2a 75%, #4a4a3a 100%),
+                linear-gradient(45deg, transparent 30%, rgba(255, 167, 38, 0.1) 50%, transparent 70%);
+            background-size: 100% 100%, 20px 20px;
+            color: #ffa726;
+            font-size: 20px;
+            text-shadow: 0 0 10px rgba(255, 167, 38, 0.3);
+        }
+
+        .pin-key.pin-delete:hover {
+            border-color: #ffb74d;
+            color: #ffb74d;
+            text-shadow: 0 0 15px rgba(255, 183, 77, 0.5);
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1419 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(30, 30, 45, 0.95);
+            border-radius: 20px;
+            padding: 30px 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #e0e0e0;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .date-display {
+            text-align: center;
+            background: rgba(40, 40, 60, 0.8);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            color: #b0b0b0;
+            font-size: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .toggles-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .person-card {
+            background: rgba(40, 40, 60, 0.6);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex: 1;
+            text-align: center;
+        }
+
+        .attendance-button {
+            width: 80px;
+            height: 80px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            font-family: 'Silkscreen', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            /* Dark metallic base */
+            background: 
+                linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 25%, #2a2a2a 50%, #3a3a3a 75%, #4a4a4a 100%),
+                linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
+            background-size: 100% 100%, 30px 30px;
+            color: #b0b0b0;
+        }
+
+        /* Brushed metal shine effect */
+        .attendance-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .attendance-button:hover::before {
+            left: 100%;
+        }
+
+        .attendance-button.present {
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 136, 0.3),
+                inset 0 0 20px rgba(0, 255, 136, 0.1),
+                0 8px 16px rgba(0, 0, 0, 0.3);
+            
+            /* Keep the dark metallic base */
+            background: 
+                linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 25%, #2a2a2a 50%, #3a3a3a 75%, #4a4a4a 100%),
+                linear-gradient(45deg, transparent 30%, rgba(0, 255, 136, 0.05) 50%, transparent 70%);
+            background-size: 100% 100%, 30px 30px;
+        }
+
+        .attendance-button.present:hover {
+            transform: translateY(-3px);
+            border-color: #00ff88;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 136, 0.5),
+                inset 0 0 30px rgba(0, 255, 136, 0.15),
+                0 12px 20px rgba(0, 0, 0, 0.4);
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.8);
+        }
+
+        .attendance-button.absent {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: #b0b0b0;
+            box-shadow: 
+                0 8px 16px rgba(0, 0, 0, 0.3),
+                inset 0 2px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .attendance-button.absent:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 12px 20px rgba(0, 0, 0, 0.4),
+                inset 0 2px 0 rgba(255, 255, 255, 0.15),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+            color: #d0d0d0;
+        }
+
+        .attendance-button:active {
+            transform: translateY(1px);
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .timestamp {
+            text-align: center;
+            margin-top: 15px;
+            color: #888;
+            font-size: 14px;
+            font-style: italic;
+        }
+
+        .stats-container {
+            background: rgba(40, 40, 60, 0.6);
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stats-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #e0e0e0;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(50, 50, 70, 0.8);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #e0e0e0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .person-stats {
+            margin-bottom: 20px;
+        }
+
+        .person-stats:last-child {
+            margin-bottom: 0;
+        }
+
+        .person-stats-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e0e0e0;
+            margin-bottom: 10px;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .sync-status {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #888;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sync-status.show {
+            opacity: 1;
+        }
+
+        .sync-status.success {
+            color: #00ff88;
+        }
+
+        .sync-status.error {
+            color: #ff6b6b;
+        }
+
+        .sync-status.loading {
+            color: #ffc107;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .toggles-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .attendance-button {
+                width: 70px;
+                height: 70px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- PIN Lock Screen -->
+    <div class="container" id="lockScreen">
+        <h1>Enter PIN</h1>
+        
+        <div class="pin-container">
+            <div class="pin-display">
+                <div class="pin-dot" id="dot1"></div>
+                <div class="pin-dot" id="dot2"></div>
+                <div class="pin-dot" id="dot3"></div>
+                <div class="pin-dot" id="dot4"></div>
+            </div>
+            
+            <div class="pin-error" id="pinError">Incorrect PIN. Try again.</div>
+            
+            <div class="pin-keypad">
+                <button class="pin-key" onclick="addPinDigit('1')">1</button>
+                <button class="pin-key" onclick="addPinDigit('2')">2</button>
+                <button class="pin-key" onclick="addPinDigit('3')">3</button>
+                <button class="pin-key" onclick="addPinDigit('4')">4</button>
+                <button class="pin-key" onclick="addPinDigit('5')">5</button>
+                <button class="pin-key" onclick="addPinDigit('6')">6</button>
+                <button class="pin-key" onclick="addPinDigit('7')">7</button>
+                <button class="pin-key" onclick="addPinDigit('8')">8</button>
+                <button class="pin-key" onclick="addPinDigit('9')">9</button>
+                <button class="pin-key pin-clear" onclick="clearPin()">Clear</button>
+                <button class="pin-key" onclick="addPinDigit('0')">0</button>
+                <button class="pin-key pin-delete" onclick="deletePinDigit()">⌫</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App (hidden initially) -->
+    <div class="container" id="mainApp" style="display: none;">
+        <h1>Attendance Tracker</h1>
+        
+        <div class="date-display" id="dateDisplay">
+            Today: Loading...
+        </div>
+
+        <div class="toggles-container">
+            <div class="person-card">
+                <button class="attendance-button absent" id="didiButton" onclick="toggleAttendance('didi')">
+                    Didi
+                </button>
+                <div class="timestamp" id="didiTimestamp">Not updated today</div>
+            </div>
+
+            <div class="person-card">
+                <button class="attendance-button absent" id="cookButton" onclick="toggleAttendance('cook')">
+                    Cook
+                </button>
+                <div class="timestamp" id="cookTimestamp">Not updated today</div>
+            </div>
+        </div>
+
+        <div class="sync-status" id="syncStatus">Ready</div>
+
+        <div class="stats-container">
+            <div class="stats-title">Attendance Summary</div>
+            
+            <div class="person-stats">
+                <div class="person-stats-name">Didi</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Last 7 Days</div>
+                        <div class="stat-value" id="didi7days">0/7</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Last 30 Days</div>
+                        <div class="stat-value" id="didi30days">0/30</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="person-stats">
+                <div class="person-stats-name">Cook</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Last 7 Days</div>
+                        <div class="stat-value" id="cook7days">0/7</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Last 30 Days</div>
+                        <div class="stat-value" id="cook30days">0/30</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const pinConfig = [4, 1, 0, 2]; // Change this to your desired PIN
+        
+        // Google Apps Script URL
+        const APPS_SCRIPT_URL = 'https://muddy-truth-ea71.ambarprasad.workers.dev/';
+        
+        // Debug mode - set to true to see detailed logs
+        const DEBUG_MODE = true;
+        
+        // App state
+        let currentPin = [];
+        let isUnlocked = false;
+        let pinAttempts = 0;
+        let attendanceData = {
+            didi: { status: 'absent', timestamp: null },
+            cook: { status: 'absent', timestamp: null }
+        };
+
+        function debugLog(message, data = null) {
+            if (DEBUG_MODE) {
+                console.log(`[ATTENDANCE TRACKER] ${message}`, data || '');
+            }
+        }
+
+        // Google Apps Script API functions with better error handling and JSONP fallback
+        async function loadTodayData() {
+                if (location.hostname.endsWith("github.io")) {
+        debugLog('Using JSONP fallback due to GitHub Pages CORS');
+        return loadTodayDataJSONP();
+    }
+            try {
+                showSyncStatus('Loading data...', 'loading');
+                debugLog('Starting loadTodayData');
+                
+                const url = `${APPS_SCRIPT_URL}?action=loadToday&cacheBust=${Date.now()}`;
+                debugLog('Fetching URL:', url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    redirect: 'follow'
+                });
+                
+                debugLog('Response status:', response.status);
+                debugLog('Response headers:', Object.fromEntries(response.headers.entries()));
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                debugLog('Response data:', result);
+                
+                if (result.success) {
+                    attendanceData = result.data;
+                        updateUI(); // <-- Added to update UI from loaded data
+                    await loadStats();
+                    showSyncStatus('Data loaded successfully', 'success');
+                    return true;
+                } else {
+                    throw new Error(result.error || 'Failed to load data');
+                }
+            } catch (error) {
+                debugLog('Error in loadTodayData:', error);
+                console.error('Error loading data:', error);
+                
+                // Try JSONP fallback for CORS issues
+                if (error.message.includes('CORS') || error.message.includes('fetch')) {
+                    debugLog('Attempting JSONP fallback');
+                    return await loadTodayDataJSONP();
+                }
+                
+                showSyncStatus(`Load failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // JSONP fallback for CORS issues
+        function loadTodayDataJSONP() {
+            return new Promise((resolve) => {
+                const callbackName = 'loadTodayCallback_' + Date.now();
+                const script = document.createElement('script');
+                
+                window[callbackName] = function(result) {
+                    debugLog('JSONP response:', result);
+                    if (result.success) {
+                        attendanceData = result.data;
+                        updateUI(); // <-- Added to update UI from loaded data
+                        loadStats();
+                        showSyncStatus('Data loaded successfully (JSONP)', 'success');
+                        resolve(true);
+                    } else {
+                        showSyncStatus('Failed to load data (JSONP)', 'error');
+                        resolve(false);
+                    }
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                };
+                
+                script.onerror = function() {
+                    showSyncStatus('Failed to load data', 'error');
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                    resolve(false);
+                };
+                
+                script.src = `${APPS_SCRIPT_URL}?action=loadToday&callback=${callbackName}&cacheBust=${Date.now()}`;
+                document.head.appendChild(script);
+            });
+        }
+
+        async function updateAttendanceData() {
+             if (location.hostname.endsWith("github.io")) {
+        debugLog('Using alternative POST method due to GitHub Pages CORS');
+        return updateAttendanceDataAlternative();
+    }
+                        try {
+                showSyncStatus('Syncing to Google Sheets...', 'loading');
+                debugLog('Starting updateAttendanceData');
+                
+                const requestBody = {
+                    action: 'updateAttendance',
+                    attendanceData: attendanceData,
+                    timestamp: new Date().toISOString(),
+                    origin: window.location.origin,
+                    date: new Date().toLocaleDateString('en-CA') // YYYY-MM-DD format
+                };
+                
+                debugLog('Request body:', requestBody);
+                
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    redirect: 'follow',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                debugLog('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                debugLog('Response data:', result);
+                
+                if (result.success) {
+                    showSyncStatus('Synced to Google Sheets ✓', 'success');
+                    return true;
+                } else {
+                    throw new Error(result.error || 'Failed to update data');
+                }
+            } catch (error) {
+                debugLog('Error in updateAttendanceData:', error);
+                console.error('Error updating data:', error);
+                
+                // Try alternative sync method for CORS issues
+                if (error.message.includes('CORS') || error.message.includes('fetch')) {
+                    debugLog('Attempting alternative sync method');
+                    return await updateAttendanceDataAlternative();
+                }
+                
+                showSyncStatus(`Sync failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Alternative sync method using form submission
+        function updateAttendanceDataAlternative() {
+            return new Promise((resolve) => {
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.name = 'sync_frame';
+                document.body.appendChild(iframe);
+                
+                const form = document.createElement('form');
+                form.target = 'sync_frame';
+                form.method = 'POST';
+                form.action = APPS_SCRIPT_URL;
+                
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'updateAttendance';
+                form.appendChild(actionInput);
+                
+                const dataInput = document.createElement('input');
+                dataInput.type = 'hidden';
+                dataInput.name = 'attendanceData';
+                dataInput.value = JSON.stringify(attendanceData);
+                form.appendChild(dataInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+                
+                setTimeout(() => {
+                    document.body.removeChild(form);
+                    document.body.removeChild(iframe);
+                    showSyncStatus('Sync attempted (alternative)', 'success');
+                    resolve(true);
+                }, 2000);
+            });
+        }
+
+        async function loadStats() {
+        if (location.hostname.endsWith("github.io")) {
+        debugLog('Using JSONP fallback for loadStats due to GitHub Pages CORS');
+        return loadStatsJSONP();
+    }
+
+    try {
+        debugLog('Starting loadStats');
+
+        const url = `${APPS_SCRIPT_URL}?action=loadStats&cacheBust=${Date.now()}`;
+        const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-cache',
+            redirect: 'follow'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        debugLog('Stats response:', result);
+
+        if (result.success) {
+            updateStatsUI(result.stats);
+            return true;
+        } else {
+            throw new Error(result.error || 'Failed to load stats');
+        }
+            } catch (error) {
+                debugLog('Error in loadStats:', error);
+                console.error('Error loading stats:', error);
+                return false;
+            }
+        }
+        function loadStatsJSONP() {
+    return new Promise((resolve) => {
+        const callbackName = 'loadStatsCallback_' + Date.now();
+        const script = document.createElement('script');
+
+        window[callbackName] = function(result) {
+            debugLog('Stats JSONP response:', result);
+            if (result.success) {
+                updateStatsUI(result.stats);
+                showSyncStatus('Stats loaded (JSONP)', 'success');
+                resolve(true);
+            } else {
+                showSyncStatus('Failed to load stats (JSONP)', 'error');
+                resolve(false);
+            }
+            document.head.removeChild(script);
+            delete window[callbackName];
+        };
+
+        script.onerror = function() {
+            showSyncStatus('Stats load failed (JSONP)', 'error');
+            document.head.removeChild(script);
+            delete window[callbackName];
+            resolve(false);
+        };
+
+        script.src = `${APPS_SCRIPT_URL}?action=loadStats&callback=${callbackName}&cacheBust=${Date.now()}`;
+        document.head.appendChild(script);
+    });
+}
+function updateStatsUI(stats) {
+    document.getElementById('didi7days').textContent = `${stats.didi.days7}/7`;
+    document.getElementById('didi30days').textContent = `${stats.didi.days30}/30`;
+    document.getElementById('cook7days').textContent = `${stats.cook.days7}/7`;
+    document.getElementById('cook30days').textContent = `${stats.cook.days30}/30`;
+}
+
+
+        function showSyncStatus(message, type) {
+            const statusElement = document.getElementById('syncStatus');
+            statusElement.textContent = message;
+            statusElement.className = `sync-status show ${type}`;
+            
+            // Hide success/error messages after 3 seconds
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    statusElement.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        // Initialize the app
+        function initApp() {
+            if (!isUnlocked) {
+                showLockScreen();
+                return;
+            }
+            updateDateDisplay();
+            loadTodayData().then(() => {
+                updateUI();
+            });
+            scheduleReset();
+        }
+
+        // PIN Lock Functions
+        function showLockScreen() {
+            document.getElementById('lockScreen').style.display = 'block';
+            document.getElementById('mainApp').style.display = 'none';
+        }
+
+        function showMainApp() {
+            document.getElementById('lockScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            updateDateDisplay();
+            loadTodayData().then(() => {
+                updateUI();
+            });
+            scheduleReset();
+        }
+
+        function addPinDigit(digit) {
+            if (currentPin.length < 4) {
+                currentPin.push(parseInt(digit));
+                updatePinDisplay();
+                
+                if (currentPin.length === 4) {
+                    setTimeout(checkPin, 300);
+                }
+            }
+        }
+
+        function deletePinDigit() {
+            if (currentPin.length > 0) {
+                currentPin.pop();
+                updatePinDisplay();
+                hidePinError();
+            }
+        }
+
+        function clearPin() {
+            currentPin = [];
+            updatePinDisplay();
+            hidePinError();
+        }
+
+        function updatePinDisplay() {
+            for (let i = 1; i <= 4; i++) {
+                const dot = document.getElementById(`dot${i}`);
+                if (i <= currentPin.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            }
+        }
+
+        function checkPin() {
+            const enteredPin = currentPin.join('');
+            const correctPin = pinConfig.join('');
+            
+            if (enteredPin === correctPin) {
+                isUnlocked = true;
+                showMainApp();
+                pinAttempts = 0;
+            } else {
+                pinAttempts++;
+                showPinError();
+                clearPin();
+                
+                // Lock for 30 seconds after 5 wrong attempts
+                if (pinAttempts >= 5) {
+                    lockTemporarily();
+                }
+            }
+        }
+
+        function showPinError() {
+            const errorElement = document.getElementById('pinError');
+            errorElement.classList.add('show');
+        }
+
+        function hidePinError() {
+            const errorElement = document.getElementById('pinError');
+            errorElement.classList.remove('show');
+        }
+
+        function lockTemporarily() {
+            const keypadButtons = document.querySelectorAll('.pin-key');
+            keypadButtons.forEach(button => button.disabled = true);
+            
+            document.getElementById('pinError').textContent = 'Too many attempts. Locked for 30 seconds.';
+            
+            setTimeout(() => {
+                keypadButtons.forEach(button => button.disabled = false);
+                document.getElementById('pinError').textContent = 'Incorrect PIN. Try again.';
+                hidePinError();
+                pinAttempts = 0;
+            }, 30000);
+        }
+
+        function updateDateDisplay() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                timeZone: 'Asia/Kolkata'
+            };
+            document.getElementById('dateDisplay').textContent = 
+                `Today: ${now.toLocaleDateString('en-IN', options)}`;
+        }
+
+        function toggleAttendance(person) {
+            const currentStatus = attendanceData[person].status;
+            const newStatus = currentStatus === 'present' ? 'absent' : 'present';
+            
+            attendanceData[person].status = newStatus;
+            
+            if (newStatus === 'present') {
+                // Store timestamp in India time with 24-hour format
+                const now = new Date();
+                attendanceData[person].timestamp = now.toLocaleString('en-IN', {
+                    timeZone: 'Asia/Kolkata',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                });
+            } else {
+                attendanceData[person].timestamp = null;
+            }
+            
+            updateUI();
+            
+            // Sync to Google Sheets via Apps Script
+            updateAttendanceData().then(success => {
+                if (success) {
+                    loadStats(); // Refresh stats after successful update
+                }
+            });
+        }
+
+        ffunction updateUI() {
+    debugLog("Updating UI based on attendanceData:", attendanceData);
+
+    ['didi', 'cook'].forEach(role => {
+        const button = document.getElementById(role + 'Button');
+        const timestampElem = document.getElementById(role + 'Timestamp');
+        const status = attendanceData[role]?.status || 'absent';
+        const time = attendanceData[role]?.timestamp || '';
+
+        if (status === 'present') {
+            button.classList.add('present');
+        } else {
+            button.classList.remove('present');
+        }
+
+        timestampElem.textContent = time ? `Last marked at: ${time}` : '';
+    });
+}
+
+
+        function scheduleReset() {
+            const now = new Date();
+            const midnight = new Date();
+            
+            // Set to next midnight in India time
+            midnight.setHours(24, 0, 0, 0);
+            
+            const msUntilMidnight = midnight.getTime() - now.getTime();
+            
+            setTimeout(() => {
+                // Reset attendance at midnight
+                attendanceData.didi.status = 'absent';
+                attendanceData.didi.timestamp = null;
+                attendanceData.cook.status = 'absent';
+                attendanceData.cook.timestamp = null;
+                
+                updateUI();
+                updateDateDisplay();
+                
+                // Sync reset to sheets
+                updateAttendanceData();
+                
+                // Schedule next reset
+                scheduleReset();
+            }, msUntilMidnight);
+        }
+
+        // Keyboard support for PIN entry
+        document.addEventListener('keydown', function(event) {
+            if (isUnlocked) return;
+            
+            const key = event.key;
+            
+            if (key >= '0' && key <= '9') {
+                addPinDigit(key);
+            } else if (key === 'Backspace') {
+                deletePinDigit();
+            } else if (key === 'Delete' || key === 'Escape') {
+                clearPin();
+            }
+        });
+
+        // Prevent right-click context menu (optional security measure)
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // Prevent text selection (optional security measure)
+        document.addEventListener('selectstart', function(e) {
+            if (e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+            }
+        });
+
+        // Initialize when page loads
+        window.onload = initApp;
+
+        // Handle visibility change (when user switches tabs/apps)
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible' && isUnlocked) {
+                // Refresh data when user returns to the app
+                loadTodayData().then(() => {
+                    updateUI();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+                
