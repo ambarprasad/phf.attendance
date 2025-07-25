@@ -574,6 +574,7 @@
                 
                 if (result.success) {
                     attendanceData = result.data;
+                        updateUI(); // <-- Added to update UI from loaded data
                     await loadStats();
                     showSyncStatus('Data loaded successfully', 'success');
                     return true;
@@ -605,6 +606,7 @@
                     debugLog('JSONP response:', result);
                     if (result.success) {
                         attendanceData = result.data;
+                        updateUI(); // <-- Added to update UI from loaded data
                         loadStats();
                         showSyncStatus('Data loaded successfully (JSONP)', 'success');
                         resolve(true);
