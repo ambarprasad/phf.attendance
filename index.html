@@ -424,18 +424,7 @@
                 font-size: 12px;
             }
         }
-    
-.button-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-}
-.toggle-button {
-    flex: 1 1 120px;
-    max-width: 160px;
-}
-</style>
+    </style>
 </head>
 <body>
     <!-- PIN Lock Screen -->
@@ -482,14 +471,14 @@
                 <button class="attendance-button absent" id="didiButton" onclick="toggleAttendance('didi')">
                     Didi
                 </button>
-                
+                <div class="timestamp" id="didiTimestamp">Not updated today</div>
             </div>
 
             <div class="person-card">
                 <button class="attendance-button absent" id="cookButton" onclick="toggleAttendance('cook')">
                     Cook
                 </button>
-                
+                <div class="timestamp" id="cookTimestamp">Not updated today</div>
             </div>
         </div>
 
@@ -533,7 +522,7 @@
         const pinConfig = [4, 1, 0, 2]; // Change this to your desired PIN
         
         // Google Apps Script URL
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8qvLcC1_EeQY0k6hlD7T8K-J-_xTOPOiJLbz_krGnaW07wvxIyOUzFsXDh2VitaeyxQ/exec';
+        const APPS_SCRIPT_URL = 'https://muddy-truth-ea71.ambarprasad.workers.dev/';
         
         // Debug mode - set to true to see detailed logs
         const DEBUG_MODE = true;
@@ -585,6 +574,7 @@
                 
                 if (result.success) {
                     attendanceData = result.data;
+                        updateUI(); // <-- Added to update UI from loaded data
                     await loadStats();
                     showSyncStatus('Data loaded successfully', 'success');
                     return true;
@@ -616,6 +606,7 @@
                     debugLog('JSONP response:', result);
                     if (result.success) {
                         attendanceData = result.data;
+                        updateUI(); // <-- Added to update UI from loaded data
                         loadStats();
                         showSyncStatus('Data loaded successfully (JSONP)', 'success');
                         resolve(true);
@@ -974,51 +965,25 @@ function updateStatsUI(stats) {
             });
         }
 
-        function updateUI() {
-        debugLog("Updating UI based on attendanceData:", attendanceData);
+        ffunction updateUI() {
+    debugLog("Updating UI based on attendanceData:", attendanceData);
 
-        ['didi', 'cook'].forEach(role => {
-            const button = document.getElementById(role + 'Button');
-            const status = attendanceData[role]?.status || 'absent';
-            const time = attendanceData[role]?.timestamp || '';
+    ['didi', 'cook'].forEach(role => {
+        const button = document.getElementById(role + 'Button');
+        const timestampElem = document.getElementById(role + 'Timestamp');
+        const status = attendanceData[role]?.status || 'absent';
+        const time = attendanceData[role]?.timestamp || '';
 
-            if (status === 'present') {
-                button.classList.add('present');
-            } else {
-                button.classList.remove('present');
-            }
-        });
-
-        const timestamps = ['didi', 'cook']
-            .map(role => attendanceData[role]?.timestamp)
-            .filter(t => t)
-            .sort()
-            .reverse();
-
-        const latestTime = timestamps.length ? timestamps[0] : 'N/A';
-        document.getElementById('lastUpdatedTime').textContent = latestTime;
-        }` : 'Present';
-            } else {
-                didiButton.className = 'attendance-button absent';
-                didiButton.textContent = 'Didi';
-                didiTimestamp.textContent = 'Not updated today';
-            }
-
-            // Update Cook
-            const cookButton = document.getElementById('cookButton');
-            const cookTimestamp = document.getElementById('cookTimestamp');
-            
-            if (attendanceData.cook.status === 'present') {
-                cookButton.className = 'attendance-button present';
-                cookButton.textContent = 'Cook';
-                cookTimestamp.textContent = attendanceData.cook.timestamp ? 
-                    `Updated: ${attendanceData.cook.timestamp}` : 'Present';
-            } else {
-                cookButton.className = 'attendance-button absent';
-                cookButton.textContent = 'Cook';
-                cookTimestamp.textContent = 'Not updated today';
-            }
+        if (status === 'present') {
+            button.classList.add('present');
+        } else {
+            button.classList.remove('present');
         }
+
+        timestampElem.textContent = time ? `Last marked at: ${time}` : '';
+    });
+}
+
 
         function scheduleReset() {
             const now = new Date();
@@ -1087,7 +1052,6 @@ function updateStatsUI(stats) {
             }
         });
         initApp();
-
     </script>
 </body>
 </html>
