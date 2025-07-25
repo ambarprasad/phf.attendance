@@ -726,43 +726,78 @@
         }
 
         async function loadStats() {
-            try {
-                debugLog('Starting loadStats');
-                
-                const url = `${APPS_SCRIPT_URL}?action=loadStats&cacheBust=${Date.now()}`;
-                const response = await fetch(url, {
-                    method: 'GET',
-                    mode: 'cors',
-                    cache: 'no-cache',
-                    redirect: 'follow'
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const result = await response.json();
-                debugLog('Stats response:', result);
-                
-                if (result.success) {
-                    const stats = result.stats;
-                    
-                    // Update UI
-                    document.getElementById('didi7days').textContent = `${stats.didi.days7}/7`;
-                    document.getElementById('didi30days').textContent = `${stats.didi.days30}/30`;
-                    document.getElementById('cook7days').textContent = `${stats.cook.days7}/7`;
-                    document.getElementById('cook30days').textContent = `${stats.cook.days30}/30`;
-                    
-                    return true;
-                } else {
-                    throw new Error(result.error || 'Failed to load stats');
-                }
+        if (location.hostname.endsWith("github.io")) {
+        debugLog('Using JSONP fallback for loadStats due to GitHub Pages CORS');
+        return loadStatsJSONP();
+    }
+
+    try {
+        debugLog('Starting loadStats');
+
+        const url = `${APPS_SCRIPT_URL}?action=loadStats&cacheBust=${Date.now()}`;
+        const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-cache',
+            redirect: 'follow'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        debugLog('Stats response:', result);
+
+        if (result.success) {
+            updateStatsUI(result.stats);
+            return true;
+        } else {
+            throw new Error(result.error || 'Failed to load stats');
+        }
             } catch (error) {
                 debugLog('Error in loadStats:', error);
                 console.error('Error loading stats:', error);
                 return false;
             }
         }
+        function loadStatsJSONP() {
+    return new Promise((resolve) => {
+        const callbackName = 'loadStatsCallback_' + Date.now();
+        const script = document.createElement('script');
+
+        window[callbackName] = function(result) {
+            debugLog('Stats JSONP response:', result);
+            if (result.success) {
+                updateStatsUI(result.stats);
+                showSyncStatus('Stats loaded (JSONP)', 'success');
+                resolve(true);
+            } else {
+                showSyncStatus('Failed to load stats (JSONP)', 'error');
+                resolve(false);
+            }
+            document.head.removeChild(script);
+            delete window[callbackName];
+        };
+
+        script.onerror = function() {
+            showSyncStatus('Stats load failed (JSONP)', 'error');
+            document.head.removeChild(script);
+            delete window[callbackName];
+            resolve(false);
+        };
+
+        script.src = `${APPS_SCRIPT_URL}?action=loadStats&callback=${callbackName}&cacheBust=${Date.now()}`;
+        document.head.appendChild(script);
+    });
+}
+function updateStatsUI(stats) {
+    document.getElementById('didi7days').textContent = `${stats.didi.days7}/7`;
+    document.getElementById('didi30days').textContent = `${stats.didi.days30}/30`;
+    document.getElementById('cook7days').textContent = `${stats.cook.days7}/7`;
+    document.getElementById('cook30days').textContent = `${stats.cook.days30}/30`;
+}
+
 
         function showSyncStatus(message, type) {
             const statusElement = document.getElementById('syncStatus');
