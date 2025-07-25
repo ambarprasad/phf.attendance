@@ -965,37 +965,25 @@ function updateStatsUI(stats) {
             });
         }
 
-        function updateUI() {
-            // Update Didi
-            const didiButton = document.getElementById('didiButton');
-            const didiTimestamp = document.getElementById('didiTimestamp');
-            
-            if (attendanceData.didi.status === 'present') {
-                didiButton.className = 'attendance-button present';
-                didiButton.textContent = 'Didi';
-                didiTimestamp.textContent = attendanceData.didi.timestamp ? 
-                    `Updated: ${attendanceData.didi.timestamp}` : 'Present';
-            } else {
-                didiButton.className = 'attendance-button absent';
-                didiButton.textContent = 'Didi';
-                didiTimestamp.textContent = 'Not updated today';
-            }
+        ffunction updateUI() {
+    debugLog("Updating UI based on attendanceData:", attendanceData);
 
-            // Update Cook
-            const cookButton = document.getElementById('cookButton');
-            const cookTimestamp = document.getElementById('cookTimestamp');
-            
-            if (attendanceData.cook.status === 'present') {
-                cookButton.className = 'attendance-button present';
-                cookButton.textContent = 'Cook';
-                cookTimestamp.textContent = attendanceData.cook.timestamp ? 
-                    `Updated: ${attendanceData.cook.timestamp}` : 'Present';
-            } else {
-                cookButton.className = 'attendance-button absent';
-                cookButton.textContent = 'Cook';
-                cookTimestamp.textContent = 'Not updated today';
-            }
+    ['didi', 'cook'].forEach(role => {
+        const button = document.getElementById(role + 'Button');
+        const timestampElem = document.getElementById(role + 'Timestamp');
+        const status = attendanceData[role]?.status || 'absent';
+        const time = attendanceData[role]?.timestamp || '';
+
+        if (status === 'present') {
+            button.classList.add('present');
+        } else {
+            button.classList.remove('present');
         }
+
+        timestampElem.textContent = time ? `Last marked at: ${time}` : '';
+    });
+}
+
 
         function scheduleReset() {
             const now = new Date();
