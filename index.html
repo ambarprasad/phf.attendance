@@ -205,10 +205,36 @@
         }
 
         .sync-indicator.loading {
-            background: #ffc107;
-            animation: spin 1s linear infinite;
-        }
+    background: #ffc107;
+    position: relative;
+    overflow: hidden;
+}
 
+.sync-indicator.loading::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    border: 2px solid transparent;
+    border-top: 2px solid #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.sync-indicator.loading::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    border: 1px solid transparent;
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite reverse;
+}
         .sync-indicator.success {
             background: #00ff88;
             box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
@@ -723,11 +749,11 @@
                 <div class="person-stats-name">Didi</div>
                 <div class="stats-grid">
                     <div class="stat-item">
-                        <div class="stat-label">Last 7 Days</div>
+                        <div class="stat-label">7 Days</div>
                         <div class="stat-value" id="didi7days">0/7</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-label">Last 30 Days</div>
+                        <div class="stat-label">30 Days</div>
                         <div class="stat-value" id="didi30days">0/30</div>
                     </div>
                 </div>
