@@ -172,41 +172,82 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        h1 {
+        .app-header {
             text-align: center;
-            color: #e0e0e0;
             margin-bottom: 30px;
+        }
+
+        .title-with-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: #e0e0e0;
             font-size: 28px;
             font-weight: 600;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            margin: 0;
         }
 
-        .date-display {
-            text-align: center;
-            background: rgba(40, 40, 60, 0.8);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 30px;
+        .sync-indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .sync-indicator.loading {
+            background: #ffc107;
+            animation: spin 1s linear infinite;
+        }
+
+        .sync-indicator.success {
+            background: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .sync-indicator.error {
+            background: #ff6b6b;
+            color: white;
+            font-weight: bold;
+            font-size: 10px;
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .last-updated {
             color: #b0b0b0;
-            font-size: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+            font-style: italic;
         }
 
         .toggles-container {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-
-        .person-card {
             background: rgba(40, 40, 60, 0.6);
             border-radius: 16px;
             padding: 25px;
+            margin-bottom: 30px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            flex: 1;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .person-card {
             text-align: center;
+            flex: 1;
         }
 
         .attendance-button {
@@ -306,19 +347,11 @@
                 inset 0 -1px 0 rgba(0, 0, 0, 0.3);
         }
 
-        .timestamp {
-            text-align: center;
-            margin-top: 15px;
-            color: #888;
-            font-size: 14px;
-            font-style: italic;
-        }
-
         .stats-container {
             background: rgba(40, 40, 60, 0.6);
             border-radius: 16px;
             padding: 25px;
-            margin-top: 30px;
+            margin-bottom: 30px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -378,30 +411,118 @@
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
 
-        .sync-status {
+        .calendar-container {
+            background: rgba(40, 40, 60, 0.6);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .calendar-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #e0e0e0;
+            margin-bottom: 20px;
             text-align: center;
-            margin-top: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 15px;
+        }
+
+        .calendar-header {
+            text-align: center;
+            padding: 8px 4px;
             font-size: 12px;
-            color: #888;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            font-weight: 600;
+            color: #b0b0b0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .sync-status.show {
-            opacity: 1;
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
         }
 
-        .sync-status.success {
-            color: #00ff88;
+        .calendar-day.other-month {
+            color: #555;
+            background: rgba(30, 30, 45, 0.5);
         }
 
-        .sync-status.error {
-            color: #ff6b6b;
+        .calendar-day.current-month {
+            color: #e0e0e0;
+            background: rgba(60, 60, 80, 0.5);
         }
 
-        .sync-status.loading {
-            color: #ffc107;
+        .calendar-day.today {
+            border: 2px solid #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
         }
+
+        .calendar-day.both-absent {
+            background: rgba(80, 80, 80, 0.8);
+            color: #ccc;
+        }
+
+        .calendar-day.both-present {
+            background: rgba(0, 255, 136, 0.8);
+            color: #000;
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
+        }
+
+        .calendar-day.didi-only {
+            background: rgba(0, 123, 255, 0.8);
+            color: #fff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+        }
+
+        .calendar-day.cook-only {
+            background: rgba(255, 165, 0, 0.8);
+            color: #000;
+            box-shadow: 0 0 8px rgba(255, 165, 0, 0.3);
+        }
+
+        .calendar-legend {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #b0b0b0;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .legend-color.both-absent { background: rgba(80, 80, 80, 0.8); }
+        .legend-color.both-present { background: rgba(0, 255, 136, 0.8); }
+        .legend-color.didi-only { background: rgba(0, 123, 255, 0.8); }
+        .legend-color.cook-only { background: rgba(255, 165, 0, 0.8); }
 
         @media (max-width: 480px) {
             .container {
@@ -423,13 +544,25 @@
                 height: 70px;
                 font-size: 12px;
             }
+
+            .calendar-grid {
+                gap: 2px;
+            }
+
+            .calendar-day {
+                font-size: 11px;
+            }
+
+            .legend-item {
+                font-size: 11px;
+            }
         }
     </style>
 </head>
 <body>
     <!-- PIN Lock Screen -->
     <div class="container" id="lockScreen">
-        <h1>Enter PIN</h1>
+        <h1 style="text-align:center;">Enter PIN</h1>
         
         <div class="pin-container">
             <div class="pin-display">
@@ -460,10 +593,12 @@
 
     <!-- Main App (hidden initially) -->
     <div class="container" id="mainApp" style="display: none;">
-        <h1>Attendance Tracker</h1>
-        
-        <div class="date-display" id="dateDisplay">
-            Today: Loading...
+        <div class="app-header">
+            <div class="title-with-indicator">
+                <h1>Attendance Tracker</h1>
+                <div class="sync-indicator" id="syncIndicator"></div>
+            </div>
+            <div class="last-updated" id="lastUpdated">Last updated: Never</div>
         </div>
 
         <div class="toggles-container">
@@ -471,18 +606,14 @@
                 <button class="attendance-button absent" id="didiButton" onclick="toggleAttendance('didi')">
                     Didi
                 </button>
-                <div class="timestamp" id="didiTimestamp">Not updated today</div>
             </div>
 
             <div class="person-card">
                 <button class="attendance-button absent" id="cookButton" onclick="toggleAttendance('cook')">
                     Cook
                 </button>
-                <div class="timestamp" id="cookTimestamp">Not updated today</div>
             </div>
         </div>
-
-        <div class="sync-status" id="syncStatus">Ready</div>
 
         <div class="stats-container">
             <div class="stats-title">Attendance Summary</div>
@@ -515,6 +646,31 @@
                 </div>
             </div>
         </div>
+
+        <div class="calendar-container">
+            <div class="calendar-title" id="calendarTitle">Loading Calendar...</div>
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Calendar will be populated by JavaScript -->
+            </div>
+            <div class="calendar-legend">
+                <div class="legend-item">
+                    <div class="legend-color both-absent"></div>
+                    <span>Both Absent</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color both-present"></div>
+                    <span>Both Present</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color didi-only"></div>
+                    <span>Didi Only</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color cook-only"></div>
+                    <span>Cook Only</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -535,11 +691,48 @@
             didi: { status: 'absent', timestamp: null },
             cook: { status: 'absent', timestamp: null }
         };
+        let calendarData = {}; // Store monthly calendar data
 
         function debugLog(message, data = null) {
             if (DEBUG_MODE) {
                 console.log(`[ATTENDANCE TRACKER] ${message}`, data || '');
             }
+        }
+
+        // Sync indicator functions
+        function setSyncIndicator(state) {
+            const indicator = document.getElementById('syncIndicator');
+            indicator.className = `sync-indicator ${state}`;
+            
+            switch(state) {
+                case 'loading':
+                    indicator.innerHTML = '';
+                    break;
+                case 'success':
+                    indicator.innerHTML = '';
+                    break;
+                case 'error':
+                    indicator.innerHTML = '!';
+                    break;
+                default:
+                    indicator.innerHTML = '';
+                    break;
+            }
+        }
+
+        // Update last updated time
+        function updateLastUpdatedTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            document.getElementById('lastUpdated').textContent = `Last updated: ${timeString}`;
         }
 
         // Google Apps Script API functions with better error handling and JSONP fallback
@@ -549,7 +742,7 @@
                 return loadTodayDataJSONP();
             }
             try {
-                showSyncStatus('Loading data...', 'loading');
+                setSyncIndicator('loading');
                 debugLog('Starting loadTodayData');
                 
                 const url = `${APPS_SCRIPT_URL}?action=loadToday&cacheBust=${Date.now()}`;
@@ -574,9 +767,11 @@
                 
                 if (result.success) {
                     attendanceData = result.data;
-                    updateUI(); // <-- Added to update UI from loaded data
+                    updateUI();
+                    updateLastUpdatedTime();
                     await loadStats();
-                    showSyncStatus('Data loaded successfully', 'success');
+                    await loadCalendarData();
+                    setSyncIndicator('success');
                     return true;
                 } else {
                     throw new Error(result.error || 'Failed to load data');
@@ -591,7 +786,7 @@
                     return await loadTodayDataJSONP();
                 }
                 
-                showSyncStatus(`Load failed: ${error.message}`, 'error');
+                setSyncIndicator('error');
                 return false;
             }
         }
@@ -606,12 +801,14 @@
                     debugLog('JSONP response:', result);
                     if (result.success) {
                         attendanceData = result.data;
-                        updateUI(); // <-- Added to update UI from loaded data
+                        updateUI();
+                        updateLastUpdatedTime();
                         loadStats();
-                        showSyncStatus('Data loaded successfully (JSONP)', 'success');
+                        loadCalendarData();
+                        setSyncIndicator('success');
                         resolve(true);
                     } else {
-                        showSyncStatus('Failed to load data (JSONP)', 'error');
+                        setSyncIndicator('error');
                         resolve(false);
                     }
                     document.head.removeChild(script);
@@ -619,7 +816,7 @@
                 };
                 
                 script.onerror = function() {
-                    showSyncStatus('Failed to load data', 'error');
+                    setSyncIndicator('error');
                     document.head.removeChild(script);
                     delete window[callbackName];
                     resolve(false);
@@ -636,7 +833,7 @@
                 return updateAttendanceDataAlternative();
             }
             try {
-                showSyncStatus('Syncing to Google Sheets...', 'loading');
+                setSyncIndicator('loading');
                 debugLog('Starting updateAttendanceData');
                 
                 const requestBody = {
@@ -670,7 +867,8 @@
                 debugLog('Response data:', result);
                 
                 if (result.success) {
-                    showSyncStatus('Synced to Google Sheets ✓', 'success');
+                    updateLastUpdatedTime();
+                    setSyncIndicator('success');
                     return true;
                 } else {
                     throw new Error(result.error || 'Failed to update data');
@@ -685,7 +883,7 @@
                     return await updateAttendanceDataAlternative();
                 }
                 
-                showSyncStatus(`Sync failed: ${error.message}`, 'error');
+                setSyncIndicator('error');
                 return false;
             }
         }
@@ -721,7 +919,8 @@
                 setTimeout(() => {
                     document.body.removeChild(form);
                     document.body.removeChild(iframe);
-                    showSyncStatus('Sync attempted (alternative)', 'success');
+                    updateLastUpdatedTime();
+                    setSyncIndicator('success');
                     resolve(true);
                 }, 2000);
             });
@@ -773,10 +972,8 @@
                     debugLog('Stats JSONP response:', result);
                     if (result.success) {
                         updateStatsUI(result.stats);
-                        showSyncStatus('Stats loaded (JSONP)', 'success');
                         resolve(true);
                     } else {
-                        showSyncStatus('Failed to load stats (JSONP)', 'error');
                         resolve(false);
                     }
                     document.head.removeChild(script);
@@ -784,7 +981,6 @@
                 };
 
                 script.onerror = function() {
-                    showSyncStatus('Stats load failed (JSONP)', 'error');
                     document.head.removeChild(script);
                     delete window[callbackName];
                     resolve(false);
@@ -795,6 +991,45 @@
             });
         }
 
+        // Load calendar data for the current month
+        async function loadCalendarData() {
+            try {
+                debugLog('Starting loadCalendarData');
+                const currentDate = new Date();
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
+
+                const url = `${APPS_SCRIPT_URL}?action=loadCalendar&year=${year}&month=${month}&cacheBust=${Date.now()}`;
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    redirect: 'follow'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                debugLog('Calendar response:', result);
+
+                if (result.success) {
+                    calendarData = result.calendar || {};
+                    renderCalendar();
+                    return true;
+                } else {
+                    throw new Error(result.error || 'Failed to load calendar');
+                }
+            } catch (error) {
+                debugLog('Error in loadCalendarData:', error);
+                console.error('Error loading calendar:', error);
+                // Render calendar anyway with empty data
+                renderCalendar();
+                return false;
+            }
+        }
+
         function updateStatsUI(stats) {
             document.getElementById('didi7days').textContent = `${stats.didi.days7}/7`;
             document.getElementById('didi30days').textContent = `${stats.didi.days30}/30`;
@@ -802,16 +1037,89 @@
             document.getElementById('cook30days').textContent = `${stats.cook.days30}/30`;
         }
 
-        function showSyncStatus(message, type) {
-            const statusElement = document.getElementById('syncStatus');
-            statusElement.textContent = message;
-            statusElement.className = `sync-status show ${type}`;
+        // Render calendar
+        function renderCalendar() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
             
-            // Hide success/error messages after 3 seconds
-            if (type !== 'loading') {
-                setTimeout(() => {
-                    statusElement.classList.remove('show');
-                }, 3000);
+            // Update calendar title
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('calendarTitle').textContent = `${monthNames[month]} ${year}`;
+            
+            const calendarGrid = document.getElementById('calendarGrid');
+            calendarGrid.innerHTML = '';
+            
+            // Add day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-header';
+                header.textContent = day;
+                calendarGrid.appendChild(header);
+            });
+            
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+            
+            // Add empty cells for days before the first of the month
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day other-month';
+                const prevMonthDay = new Date(year, month, 0 - (startingDayOfWeek - 1 - i));
+                emptyDay.textContent = prevMonthDay.getDate();
+                calendarGrid.appendChild(emptyDay);
+            }
+            
+            // Add days of the current month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day current-month';
+                dayElement.textContent = day;
+                
+                // Check if it's today
+                const today = new Date();
+                if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+                    dayElement.classList.add('today');
+                }
+                
+                // Apply attendance status styling
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayData = calendarData[dateKey];
+                
+                if (dayData) {
+                    const didiPresent = dayData.didi === 'present';
+                    const cookPresent = dayData.cook === 'present';
+                    
+                    if (didiPresent && cookPresent) {
+                        dayElement.classList.add('both-present');
+                    } else if (didiPresent && !cookPresent) {
+                        dayElement.classList.add('didi-only');
+                    } else if (!didiPresent && cookPresent) {
+                        dayElement.classList.add('cook-only');
+                    } else {
+                        dayElement.classList.add('both-absent');
+                    }
+                } else {
+                    // No data for this day - assume both absent
+                    dayElement.classList.add('both-absent');
+                }
+                
+                calendarGrid.appendChild(dayElement);
+            }
+            
+            // Fill remaining cells with next month's days
+            const totalCells = 42; // 6 rows × 7 days
+            const cellsUsed = startingDayOfWeek + daysInMonth;
+            for (let day = 1; cellsUsed + day - 1 < totalCells; day++) {
+                const nextMonthDay = document.createElement('div');
+                nextMonthDay.className = 'calendar-day other-month';
+                nextMonthDay.textContent = day;
+                calendarGrid.appendChild(nextMonthDay);
             }
         }
 
@@ -821,7 +1129,6 @@
                 showLockScreen();
                 return;
             }
-            updateDateDisplay();
             loadTodayData().then(() => {
                 updateUI();
             });
@@ -837,7 +1144,6 @@
         function showMainApp() {
             document.getElementById('lockScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
-            updateDateDisplay();
             loadTodayData().then(() => {
                 updateUI();
             });
@@ -924,19 +1230,6 @@
             }, 30000);
         }
 
-        function updateDateDisplay() {
-            const now = new Date();
-            const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                timeZone: 'Asia/Kolkata'
-            };
-            document.getElementById('dateDisplay').textContent = 
-                `Today: ${now.toLocaleDateString('en-IN', options)}`;
-        }
-
         function toggleAttendance(person) {
             const currentStatus = attendanceData[person].status;
             const newStatus = currentStatus === 'present' ? 'absent' : 'present';
@@ -962,6 +1255,7 @@
             updateAttendanceData().then(success => {
                 if (success) {
                     loadStats(); // Refresh stats after successful update
+                    loadCalendarData(); // Refresh calendar after successful update
                 }
             });
         }
@@ -971,9 +1265,7 @@
 
             ['didi', 'cook'].forEach(role => {
                 const button = document.getElementById(role + 'Button');
-                const timestampElem = document.getElementById(role + 'Timestamp');
                 const status = attendanceData[role]?.status || 'absent';
-                const time = attendanceData[role]?.timestamp || '';
 
                 if (status === 'present') {
                     button.classList.add('present');
@@ -982,8 +1274,6 @@
                     button.classList.remove('present');
                     button.classList.add('absent');
                 }
-
-                timestampElem.textContent = time ? `Last marked at: ${time}` : 'Not updated today';
             });
         }
 
@@ -1004,7 +1294,6 @@
                 attendanceData.cook.timestamp = null;
                 
                 updateUI();
-                updateDateDisplay();
                 
                 // Sync reset to sheets
                 updateAttendanceData();
