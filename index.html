@@ -521,7 +521,7 @@
         // Configuration
         const pinConfig = [4, 1, 0, 2]; // Change this to your desired PIN
         
-        // Google Apps Script URL
+        // Google Apps Script URL - Updated to use the improved URL from index.html
         const APPS_SCRIPT_URL = 'https://muddy-truth-ea71.ambarprasad.workers.dev/';
         
         // Debug mode - set to true to see detailed logs
@@ -544,10 +544,10 @@
 
         // Google Apps Script API functions with better error handling and JSONP fallback
         async function loadTodayData() {
-                if (location.hostname.endsWith("github.io")) {
-        debugLog('Using JSONP fallback due to GitHub Pages CORS');
-        return loadTodayDataJSONP();
-    }
+            if (location.hostname.endsWith("github.io")) {
+                debugLog('Using JSONP fallback due to GitHub Pages CORS');
+                return loadTodayDataJSONP();
+            }
             try {
                 showSyncStatus('Loading data...', 'loading');
                 debugLog('Starting loadTodayData');
@@ -574,7 +574,7 @@
                 
                 if (result.success) {
                     attendanceData = result.data;
-                        updateUI(); // <-- Added to update UI from loaded data
+                    updateUI(); // <-- Added to update UI from loaded data
                     await loadStats();
                     showSyncStatus('Data loaded successfully', 'success');
                     return true;
@@ -631,11 +631,11 @@
         }
 
         async function updateAttendanceData() {
-             if (location.hostname.endsWith("github.io")) {
-        debugLog('Using alternative POST method due to GitHub Pages CORS');
-        return updateAttendanceDataAlternative();
-    }
-                        try {
+            if (location.hostname.endsWith("github.io")) {
+                debugLog('Using alternative POST method due to GitHub Pages CORS');
+                return updateAttendanceDataAlternative();
+            }
+            try {
                 showSyncStatus('Syncing to Google Sheets...', 'loading');
                 debugLog('Starting updateAttendanceData');
                 
@@ -728,78 +728,79 @@
         }
 
         async function loadStats() {
-        if (location.hostname.endsWith("github.io")) {
-        debugLog('Using JSONP fallback for loadStats due to GitHub Pages CORS');
-        return loadStatsJSONP();
-    }
+            if (location.hostname.endsWith("github.io")) {
+                debugLog('Using JSONP fallback for loadStats due to GitHub Pages CORS');
+                return loadStatsJSONP();
+            }
 
-    try {
-        debugLog('Starting loadStats');
+            try {
+                debugLog('Starting loadStats');
 
-        const url = `${APPS_SCRIPT_URL}?action=loadStats&cacheBust=${Date.now()}`;
-        const response = await fetch(url, {
-            method: 'GET',
-            mode: 'cors',
-            cache: 'no-cache',
-            redirect: 'follow'
-        });
+                const url = `${APPS_SCRIPT_URL}?action=loadStats&cacheBust=${Date.now()}`;
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    redirect: 'follow'
+                });
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
 
-        const result = await response.json();
-        debugLog('Stats response:', result);
+                const result = await response.json();
+                debugLog('Stats response:', result);
 
-        if (result.success) {
-            updateStatsUI(result.stats);
-            return true;
-        } else {
-            throw new Error(result.error || 'Failed to load stats');
-        }
+                if (result.success) {
+                    updateStatsUI(result.stats);
+                    return true;
+                } else {
+                    throw new Error(result.error || 'Failed to load stats');
+                }
             } catch (error) {
                 debugLog('Error in loadStats:', error);
                 console.error('Error loading stats:', error);
                 return false;
             }
         }
+
         function loadStatsJSONP() {
-    return new Promise((resolve) => {
-        const callbackName = 'loadStatsCallback_' + Date.now();
-        const script = document.createElement('script');
+            return new Promise((resolve) => {
+                const callbackName = 'loadStatsCallback_' + Date.now();
+                const script = document.createElement('script');
 
-        window[callbackName] = function(result) {
-            debugLog('Stats JSONP response:', result);
-            if (result.success) {
-                updateStatsUI(result.stats);
-                showSyncStatus('Stats loaded (JSONP)', 'success');
-                resolve(true);
-            } else {
-                showSyncStatus('Failed to load stats (JSONP)', 'error');
-                resolve(false);
-            }
-            document.head.removeChild(script);
-            delete window[callbackName];
-        };
+                window[callbackName] = function(result) {
+                    debugLog('Stats JSONP response:', result);
+                    if (result.success) {
+                        updateStatsUI(result.stats);
+                        showSyncStatus('Stats loaded (JSONP)', 'success');
+                        resolve(true);
+                    } else {
+                        showSyncStatus('Failed to load stats (JSONP)', 'error');
+                        resolve(false);
+                    }
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                };
 
-        script.onerror = function() {
-            showSyncStatus('Stats load failed (JSONP)', 'error');
-            document.head.removeChild(script);
-            delete window[callbackName];
-            resolve(false);
-        };
+                script.onerror = function() {
+                    showSyncStatus('Stats load failed (JSONP)', 'error');
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                    resolve(false);
+                };
 
-        script.src = `${APPS_SCRIPT_URL}?action=loadStats&callback=${callbackName}&cacheBust=${Date.now()}`;
-        document.head.appendChild(script);
-    });
-}
-function updateStatsUI(stats) {
-    document.getElementById('didi7days').textContent = `${stats.didi.days7}/7`;
-    document.getElementById('didi30days').textContent = `${stats.didi.days30}/30`;
-    document.getElementById('cook7days').textContent = `${stats.cook.days7}/7`;
-    document.getElementById('cook30days').textContent = `${stats.cook.days30}/30`;
-}
+                script.src = `${APPS_SCRIPT_URL}?action=loadStats&callback=${callbackName}&cacheBust=${Date.now()}`;
+                document.head.appendChild(script);
+            });
+        }
 
+        function updateStatsUI(stats) {
+            document.getElementById('didi7days').textContent = `${stats.didi.days7}/7`;
+            document.getElementById('didi30days').textContent = `${stats.didi.days30}/30`;
+            document.getElementById('cook7days').textContent = `${stats.cook.days7}/7`;
+            document.getElementById('cook30days').textContent = `${stats.cook.days30}/30`;
+        }
 
         function showSyncStatus(message, type) {
             const statusElement = document.getElementById('syncStatus');
@@ -966,24 +967,25 @@ function updateStatsUI(stats) {
         }
 
         function updateUI() {
-    debugLog("Updating UI based on attendanceData:", attendanceData);
+            debugLog("Updating UI based on attendanceData:", attendanceData);
 
-    ['didi', 'cook'].forEach(role => {
-        const button = document.getElementById(role + 'Button');
-        const timestampElem = document.getElementById(role + 'Timestamp');
-        const status = attendanceData[role]?.status || 'absent';
-        const time = attendanceData[role]?.timestamp || '';
+            ['didi', 'cook'].forEach(role => {
+                const button = document.getElementById(role + 'Button');
+                const timestampElem = document.getElementById(role + 'Timestamp');
+                const status = attendanceData[role]?.status || 'absent';
+                const time = attendanceData[role]?.timestamp || '';
 
-        if (status === 'present') {
-            button.classList.add('present');
-        } else {
-            button.classList.remove('present');
+                if (status === 'present') {
+                    button.classList.add('present');
+                    button.classList.remove('absent');
+                } else {
+                    button.classList.remove('present');
+                    button.classList.add('absent');
+                }
+
+                timestampElem.textContent = time ? `Last marked at: ${time}` : 'Not updated today';
+            });
         }
-
-        timestampElem.textContent = time ? `Last marked at: ${time}` : '';
-    });
-}
-
 
         function scheduleReset() {
             const now = new Date();
@@ -1051,8 +1053,9 @@ function updateStatsUI(stats) {
                 });
             }
         });
+        
+        // Initialize app immediately
         initApp();
     </script>
 </body>
 </html>
-                
