@@ -1087,27 +1087,27 @@
                     dayElement.classList.add('today');
                 }
                 
-                // Apply attendance status styling
-                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const dayData = calendarData[dateKey];
-                
-                if (dayData) {
-                    const didiPresent = dayData.didi === 'present';
-                    const cookPresent = dayData.cook === 'present';
-                    
-                    if (didiPresent && cookPresent) {
-                        dayElement.classList.add('both-present');
-                    } else if (didiPresent && !cookPresent) {
-                        dayElement.classList.add('didi-only');
-                    } else if (!didiPresent && cookPresent) {
-                        dayElement.classList.add('cook-only');
-                    } else {
-                        dayElement.classList.add('both-absent');
-                    }
-                } else {
-                    // No data for this day - assume both absent
-                    dayElement.classList.add('both-absent');
-                }
+                // Apply attendance status styling based on Google Sheets data
+const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+const dayData = calendarData[dateKey];
+
+if (dayData) {
+    const didiPresent = dayData.didi && dayData.didi.toLowerCase() === 'present';
+    const cookPresent = dayData.cook && dayData.cook.toLowerCase() === 'present';
+    
+    if (didiPresent && cookPresent) {
+        dayElement.classList.add('both-present');
+    } else if (didiPresent && !cookPresent) {
+        dayElement.classList.add('didi-only');
+    } else if (!didiPresent && cookPresent) {
+        dayElement.classList.add('cook-only');
+    } else {
+        dayElement.classList.add('both-absent');
+    }
+} else {
+    // No data for this day in Google Sheets - assume both absent
+    dayElement.classList.add('both-absent');
+}
                 
                 calendarGrid.appendChild(dayElement);
             }
