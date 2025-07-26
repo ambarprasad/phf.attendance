@@ -457,6 +457,7 @@
             padding: 25px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 30px;
         }
 
         .calendar-title {
@@ -753,6 +754,7 @@
                 </button>
             </div>
         </div>
+        
         <div class="calendar-container">
             <div class="calendar-title" id="calendarTitle">Loading Calendar...</div>
             <div class="calendar-grid" id="calendarGrid">
@@ -830,6 +832,8 @@
             cook: { status: 'absent', timestamp: null }
         };
         let calendarData = {}; // Store monthly calendar data
+        let autoRefreshTimer = null;
+        let sessionUnlocked = false;
 
         function debugLog(message, data = null) {
             if (DEBUG_MODE) {
@@ -845,11 +849,6 @@
         case 'success':
             indicator.className = 'sync-indicator success';
             indicator.innerHTML = '';
-            // Auto-return to loading after 3 seconds
-            setTimeout(() => {
-                indicator.className = 'sync-indicator';
-                indicator.innerHTML = '';
-            }, 3000);
             break;
             
         case 'error':
@@ -1272,31 +1271,39 @@ if (dayData) {
 
         // Initialize the app
         function initApp() {
-            if (!isUnlocked) {
-                showLockScreen();
-                return;
-            }
-            loadTodayData().then(() => {
-                updateUI();
-            });
-            scheduleReset();
-        }
-
+    // Check if user was already unlocked in this session
+    if (sessionUnlocked) {
+        isUnlocked = true;
+        showMainApp();
+        return;
+    }
+    
+    if (!isUnlocked) {
+        showLockScreen();
+        return;
+    }
+    
+    loadTodayData().then(() => {
+        updateUI();
+    });
+    scheduleReset();
+}
         // PIN Lock Functions
         function showLockScreen() {
             document.getElementById('lockScreen').style.display = 'block';
             document.getElementById('mainApp').style.display = 'none';
+            stopAutoRefresh(); 
         }
 
         function showMainApp() {
-            document.getElementById('lockScreen').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            loadTodayData().then(() => {
-                updateUI();
-            });
-            scheduleReset();
-        }
-
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    loadTodayData().then(() => {
+        updateUI();
+    });
+    scheduleReset();
+    startAutoRefresh(); // Start auto-refresh when main app is shown
+}
         function addPinDigit(digit) {
             if (currentPin.length < 4) {
                 currentPin.push(parseInt(digit));
@@ -1334,24 +1341,53 @@ if (dayData) {
         }
 
         function checkPin() {
-            const enteredPin = currentPin.join('');
-            const correctPin = pinConfig.join('');
-            
-            if (enteredPin === correctPin) {
-                isUnlocked = true;
-                showMainApp();
-                pinAttempts = 0;
-            } else {
-                pinAttempts++;
-                showPinError();
-                clearPin();
-                
-                // Lock for 30 seconds after 5 wrong attempts
-                if (pinAttempts >= 5) {
-                    lockTemporarily();
-                }
-            }
+    const enteredPin = currentPin.join('');
+    const correctPin = pinConfig.join('');
+    
+    if (enteredPin === correctPin) {
+        isUnlocked = true;
+        sessionUnlocked = true; // Set session flag
+        showMainApp();
+        pinAttempts = 0;
+        startAutoRefresh(); // Start auto-refresh after successful unlock
+    } else {
+        pinAttempts++;
+        showPinError();
+        clearPin();
+        
+        // Lock for 30 seconds after 5 wrong attempts
+        if (pinAttempts >= 5) {
+            lockTemporarily();
         }
+    }
+}
+function startAutoRefresh() {
+    // Clear any existing timer
+    if (autoRefreshTimer) {
+        clearInterval(autoRefreshTimer);
+    }
+    
+    // Set up auto-refresh every 15 seconds
+    autoRefreshTimer = setInterval(() => {
+        debugLog('Auto-refreshing data...');
+        setSyncIndicator('loading');
+        
+        loadTodayData().then((success) => {
+            if (success) {
+                debugLog('Auto-refresh successful');
+            } else {
+                debugLog('Auto-refresh failed');
+            }
+        });
+    }, 15000); // 15 seconds
+}
+function stopAutoRefresh() {
+    if (autoRefreshTimer) {
+        clearInterval(autoRefreshTimer);
+        autoRefreshTimer = null;
+        debugLog('Auto-refresh stopped');
+    }
+}
 
         function showPinError() {
             const errorElement = document.getElementById('pinError');
@@ -1481,14 +1517,26 @@ if (dayData) {
         window.onload = initApp;
 
         // Handle visibility change (when user switches tabs/apps)
-        document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'visible' && isUnlocked) {
-                // Refresh data when user returns to the app
-                loadTodayData().then(() => {
-                    updateUI();
-                });
-            }
+        if (document.visibilityState === 'visible' && isUnlocked) {
+        // Refresh data when user returns to the app
+        setSyncIndicator('loading');
+        loadTodayData().then(() => {
+            updateUI();
         });
+        
+        // Restart auto-refresh if it was stopped
+        if (!autoRefreshTimer && sessionUnlocked) {
+            startAutoRefresh();
+        }
+    } else if (document.visibilityState === 'hidden') {
+        // Optionally stop auto-refresh when page is hidden to save resources
+        // Uncomment the line below if you want to pause refresh when page is not visible
+        stopAutoRefresh();
+    }
+});
+window.addEventListener('beforeunload', function() {
+    stopAutoRefresh();
+});
         
         // Initialize app immediately
         initApp();
