@@ -251,32 +251,34 @@
         }
 
         .attendance-button {
-            width: 80px;
-            height: 80px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            font-family: 'Silkscreen', monospace;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            
-            /* Dark metallic base */
-            background: 
-                linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 25%, #2a2a2a 50%, #3a3a3a 75%, #4a4a4a 100%),
-                linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
-            background-size: 100% 100%, 30px 30px;
-            color: #b0b0b0;
-        }
+    width: 80px;
+    height: 80px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    font-family: 'Silkscreen', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    line-height: 1;
+    
+    /* Dark metallic base */
+    background: 
+        linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 25%, #2a2a2a 50%, #3a3a3a 75%, #4a4a4a 100%),
+        linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
+    background-size: 100% 100%, 30px 30px;
+    color: #b0b0b0;
+}
 
         /* Brushed metal shine effect */
         .attendance-button::before {
@@ -525,38 +527,137 @@
         .legend-color.cook-only { background: rgba(255, 165, 0, 0.8); }
 
         @media (max-width: 480px) {
-            .container {
-                margin: 10px;
-                padding: 20px;
-            }
-            
-            h1 {
-                font-size: 24px;
-            }
-            
-            .toggles-container {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .attendance-button {
-                width: 70px;
-                height: 70px;
-                font-size: 12px;
-            }
+    .container {
+        margin: 10px;
+        padding: 20px;
+    }
+    
+    h1 {
+        font-size: 20px;
+    }
+    
+    .toggles-container {
+        padding: 20px 15px;
+        gap: 15px;
+    }
+    
+    .attendance-button {
+        width: 60px;
+        height: 60px;
+        font-size: 10px;
+        line-height: 1.1;
+    }
 
-            .calendar-grid {
-                gap: 2px;
-            }
+    .calendar-grid {
+        gap: 2px;
+    }
 
-            .calendar-day {
-                font-size: 11px;
-            }
+    .calendar-day {
+        font-size: 10px;
+        min-height: 32px;
+        aspect-ratio: 1;
+    }
 
-            .legend-item {
-                font-size: 11px;
-            }
-        }
+    .calendar-header {
+        font-size: 10px;
+        padding: 6px 2px;
+    }
+
+    .calendar-container {
+        padding: 20px 15px;
+    }
+
+    .calendar-title {
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+
+    .calendar-legend {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    .legend-item {
+        font-size: 11px;
+    }
+
+    .legend-color {
+        width: 10px;
+        height: 10px;
+    }
+
+    .stats-container {
+        padding: 20px 15px;
+    }
+
+    .stats-grid {
+        gap: 10px;
+    }
+
+    .stat-item {
+        padding: 12px;
+    }
+
+    .stat-value {
+        font-size: 20px;
+    }
+}
+@media (max-width: 360px) {
+    .container {
+        margin: 5px;
+        padding: 15px;
+    }
+    
+    h1 {
+        font-size: 18px;
+    }
+    
+    .title-with-indicator {
+        gap: 8px;
+    }
+    
+    .sync-indicator {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .toggles-container {
+        padding: 15px 10px;
+        gap: 10px;
+    }
+    
+    .attendance-button {
+        width: 50px;
+        height: 50px;
+        font-size: 9px;
+    }
+
+    .calendar-day {
+        font-size: 9px;
+        min-height: 28px;
+    }
+
+    .calendar-header {
+        font-size: 9px;
+        padding: 4px 2px;
+    }
+
+    .calendar-title {
+        font-size: 16px;
+    }
+
+    .stats-title {
+        font-size: 18px;
+    }
+
+    .stat-value {
+        font-size: 18px;
+    }
+
+    .legend-item {
+        font-size: 10px;
+    }
+}
     </style>
 </head>
 <body>
