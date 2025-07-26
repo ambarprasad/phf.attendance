@@ -392,6 +392,7 @@
             border-radius: 16px;
             padding: 25px;
             margin-bottom: 30px;
+            margin-top: 30px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -436,10 +437,11 @@
 
         .person-stats {
             margin-bottom: 20px;
+            margin-top: 30px;
         }
 
         .person-stats:last-child {
-            margin-bottom: 0;
+            margin-bottom: 20px;
         }
 
         .person-stats-name {
@@ -815,34 +817,34 @@
 
     <script>
         // Configuration
-        const pinConfig = [4, 1, 0, 2]; // Change this to your desired PIN
-        
-        // Google Apps Script URL - Updated to use the improved URL from index.html
-        const APPS_SCRIPT_URL = 'https://muddy-truth-ea71.ambarprasad.workers.dev/';
-        
-        // Debug mode - set to true to see detailed logs
-        const DEBUG_MODE = true;
-        
-        // App state
-        let currentPin = [];
-        let isUnlocked = false;
-        let pinAttempts = 0;
-        let attendanceData = {
-            didi: { status: 'absent', timestamp: null },
-            cook: { status: 'absent', timestamp: null }
-        };
-        let calendarData = {}; // Store monthly calendar data
-        let autoRefreshTimer = null;
-        let sessionUnlocked = false;
+const JJooKKOok = [4, 1, 0, 2]; // Cheeky
 
-        function debugLog(message, data = null) {
-            if (DEBUG_MODE) {
-                console.log(`[ATTENDANCE TRACKER] ${message}`, data || '');
-            }
-        }
+// Google Apps Script URL - Updated to use the improved URL from index.html
+const APPS_SCRIPT_URL = 'https://muddy-truth-ea71.ambarprasad.workers.dev/';
 
-        // Sync indicator functions
-        function setSyncIndicator(state) {
+// Debug mode - set to true to see detailed logs
+const DEBUG_MODE = true;
+
+// App state
+let currentPin = [];
+let isUnlocked = false;
+let pinAttempts = 0;
+let attendanceData = {
+    didi: { status: 'absent', timestamp: null },
+    cook: { status: 'absent', timestamp: null }
+};
+let calendarData = {}; // Store monthly calendar data
+let autoRefreshTimer = null;
+let sessionUnlocked = false;
+
+function debugLog(message, data = null) {
+    if (DEBUG_MODE) {
+        console.log(`[ATTENDANCE TRACKER] ${message}`, data || '');
+    }
+}
+
+// Sync indicator functions
+function setSyncIndicator(state) {
     const indicator = document.getElementById('syncIndicator');
     
     switch(state) {
@@ -868,499 +870,23 @@
             break;
     }
 }
-        // Update last updated time
-        function updateLastUpdatedTime() {
-            const now = new Date();
-            const timeString = now.toLocaleString('en-IN', {
-                timeZone: 'Asia/Kolkata',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            });
-            document.getElementById('lastUpdated').textContent = `Last updated: ${timeString}`;
-        }
 
-        // Google Apps Script API functions with better error handling and JSONP fallback
-        async function loadTodayData() {
-            if (location.hostname.endsWith("github.io")) {
-                debugLog('Using JSONP fallback due to GitHub Pages CORS');
-                return loadTodayDataJSONP();
-            }
-            try {
-                debugLog('Starting loadTodayData');
-                
-                const url = `${APPS_SCRIPT_URL}?action=loadToday&cacheBust=${Date.now()}`;
-                debugLog('Fetching URL:', url);
-                
-                const response = await fetch(url, {
-                    method: 'GET',
-                    mode: 'cors',
-                    cache: 'no-cache',
-                    redirect: 'follow'
-                });
-                
-                debugLog('Response status:', response.status);
-                debugLog('Response headers:', Object.fromEntries(response.headers.entries()));
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const result = await response.json();
-                debugLog('Response data:', result);
-                
-                if (result.success) {
-                    attendanceData = result.data;
-                    updateUI();
-                    updateLastUpdatedTime();
-                    await loadStats();
-                    await loadCalendarData();
-                    setSyncIndicator('success');
-                    return true;
-                } else {
-                    throw new Error(result.error || 'Failed to load data');
-                }
-            } catch (error) {
-                debugLog('Error in loadTodayData:', error);
-                console.error('Error loading data:', error);
-                
-                // Try JSONP fallback for CORS issues
-                if (error.message.includes('CORS') || error.message.includes('fetch')) {
-                    debugLog('Attempting JSONP fallback');
-                    return await loadTodayDataJSONP();
-                }
-                
-                setSyncIndicator('error');
-                return false;
-            }
-        }
-
-        // JSONP fallback for CORS issues
-        function loadTodayDataJSONP() {
-            return new Promise((resolve) => {
-                const callbackName = 'loadTodayCallback_' + Date.now();
-                const script = document.createElement('script');
-                
-                window[callbackName] = function(result) {
-                    debugLog('JSONP response:', result);
-                    if (result.success) {
-                        attendanceData = result.data;
-                        updateUI();
-                        updateLastUpdatedTime();
-                        loadStats();
-                        loadCalendarData();
-                        setSyncIndicator('success');
-                        resolve(true);
-                    } else {
-                        setSyncIndicator('error');
-                        resolve(false);
-                    }
-                    document.head.removeChild(script);
-                    delete window[callbackName];
-                };
-                
-                script.onerror = function() {
-                    setSyncIndicator('error');
-                    document.head.removeChild(script);
-                    delete window[callbackName];
-                    resolve(false);
-                };
-                
-                script.src = `${APPS_SCRIPT_URL}?action=loadToday&callback=${callbackName}&cacheBust=${Date.now()}`;
-                document.head.appendChild(script);
-            });
-        }
-
-        async function updateAttendanceData() {
-            if (location.hostname.endsWith("github.io")) {
-                debugLog('Using alternative POST method due to GitHub Pages CORS');
-                return updateAttendanceDataAlternative();
-            }
-            try {
-                debugLog('Starting updateAttendanceData');
-                
-                const requestBody = {
-                    action: 'updateAttendance',
-                    attendanceData: attendanceData,
-                    timestamp: new Date().toISOString(),
-                    origin: window.location.origin,
-                    date: new Date().toLocaleDateString('en-CA') // YYYY-MM-DD format
-                };
-                
-                debugLog('Request body:', requestBody);
-                
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    cache: 'no-cache',
-                    redirect: 'follow',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-                
-                debugLog('Response status:', response.status);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const result = await response.json();
-                debugLog('Response data:', result);
-                
-                if (result.success) {
-                    updateLastUpdatedTime();
-                    setSyncIndicator('success');
-                    return true;
-                } else {
-                    throw new Error(result.error || 'Failed to update data');
-                }
-            } catch (error) {
-                debugLog('Error in updateAttendanceData:', error);
-                console.error('Error updating data:', error);
-                
-                // Try alternative sync method for CORS issues
-                if (error.message.includes('CORS') || error.message.includes('fetch')) {
-                    debugLog('Attempting alternative sync method');
-                    return await updateAttendanceDataAlternative();
-                }
-                
-                setSyncIndicator('error');
-                return false;
-            }
-        }
-
-        // Alternative sync method using form submission
-        function updateAttendanceDataAlternative() {
-            return new Promise((resolve) => {
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.name = 'sync_frame';
-                document.body.appendChild(iframe);
-                
-                const form = document.createElement('form');
-                form.target = 'sync_frame';
-                form.method = 'POST';
-                form.action = APPS_SCRIPT_URL;
-                
-                const actionInput = document.createElement('input');
-                actionInput.type = 'hidden';
-                actionInput.name = 'action';
-                actionInput.value = 'updateAttendance';
-                form.appendChild(actionInput);
-                
-                const dataInput = document.createElement('input');
-                dataInput.type = 'hidden';
-                dataInput.name = 'attendanceData';
-                dataInput.value = JSON.stringify(attendanceData);
-                form.appendChild(dataInput);
-                
-                document.body.appendChild(form);
-                form.submit();
-                
-                setTimeout(() => {
-                    document.body.removeChild(form);
-                    document.body.removeChild(iframe);
-                    updateLastUpdatedTime();
-                    setSyncIndicator('success');
-                    resolve(true);
-                }, 2000);
-            });
-        }
-
-        async function loadStats() {
-            if (location.hostname.endsWith("github.io")) {
-                debugLog('Using JSONP fallback for loadStats due to GitHub Pages CORS');
-                return loadStatsJSONP();
-            }
-
-            try {
-                debugLog('Starting loadStats');
-
-                const url = `${APPS_SCRIPT_URL}?action=loadStats&cacheBust=${Date.now()}`;
-                const response = await fetch(url, {
-                    method: 'GET',
-                    mode: 'cors',
-                    cache: 'no-cache',
-                    redirect: 'follow'
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const result = await response.json();
-                debugLog('Stats response:', result);
-
-                if (result.success) {
-                    updateStatsUI(result.stats);
-                    return true;
-                } else {
-                    throw new Error(result.error || 'Failed to load stats');
-                }
-            } catch (error) {
-                debugLog('Error in loadStats:', error);
-                console.error('Error loading stats:', error);
-                return false;
-            }
-        }
-
-        function loadStatsJSONP() {
-            return new Promise((resolve) => {
-                const callbackName = 'loadStatsCallback_' + Date.now();
-                const script = document.createElement('script');
-
-                window[callbackName] = function(result) {
-                    debugLog('Stats JSONP response:', result);
-                    if (result.success) {
-                        updateStatsUI(result.stats);
-                        resolve(true);
-                    } else {
-                        resolve(false);
-                    }
-                    document.head.removeChild(script);
-                    delete window[callbackName];
-                };
-
-                script.onerror = function() {
-                    document.head.removeChild(script);
-                    delete window[callbackName];
-                    resolve(false);
-                };
-
-                script.src = `${APPS_SCRIPT_URL}?action=loadStats&callback=${callbackName}&cacheBust=${Date.now()}`;
-                document.head.appendChild(script);
-            });
-        }
-
-        // Load calendar data for the current month
-        async function loadCalendarData() {
-            try {
-                debugLog('Starting loadCalendarData');
-                const currentDate = new Date();
-                const year = currentDate.getFullYear();
-                const month = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
-
-                const url = `${APPS_SCRIPT_URL}?action=loadCalendar&year=${year}&month=${month}&cacheBust=${Date.now()}`;
-                const response = await fetch(url, {
-                    method: 'GET',
-                    mode: 'cors',
-                    cache: 'no-cache',
-                    redirect: 'follow'
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const result = await response.json();
-                debugLog('Calendar response:', result);
-
-                if (result.success) {
-                    calendarData = result.calendar || {};
-                    renderCalendar();
-                    return true;
-                } else {
-                    throw new Error(result.error || 'Failed to load calendar');
-                }
-            } catch (error) {
-                debugLog('Error in loadCalendarData:', error);
-                console.error('Error loading calendar:', error);
-                // Render calendar anyway with empty data
-                renderCalendar();
-                return false;
-            }
-        }
-
-        function updateStatsUI(stats) {
-            document.getElementById('didi7days').textContent = `${stats.didi.days7}/7`;
-            document.getElementById('didi30days').textContent = `${stats.didi.days30}/30`;
-            document.getElementById('cook7days').textContent = `${stats.cook.days7}/7`;
-            document.getElementById('cook30days').textContent = `${stats.cook.days30}/30`;
-        }
-
-        // Render calendar
-        function renderCalendar() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            
-            // Update calendar title
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'];
-            document.getElementById('calendarTitle').textContent = `${monthNames[month]} ${year}`;
-            
-            const calendarGrid = document.getElementById('calendarGrid');
-            calendarGrid.innerHTML = '';
-            
-            // Add day headers
-            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            dayHeaders.forEach(day => {
-                const header = document.createElement('div');
-                header.className = 'calendar-header';
-                header.textContent = day;
-                calendarGrid.appendChild(header);
-            });
-            
-            // Get first day of month and number of days
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const daysInMonth = lastDay.getDate();
-            const startingDayOfWeek = firstDay.getDay();
-            
-            // Add empty cells for days before the first of the month
-            for (let i = 0; i < startingDayOfWeek; i++) {
-                const emptyDay = document.createElement('div');
-                emptyDay.className = 'calendar-day other-month';
-                const prevMonthDay = new Date(year, month, 0 - (startingDayOfWeek - 1 - i));
-                emptyDay.textContent = prevMonthDay.getDate();
-                calendarGrid.appendChild(emptyDay);
-            }
-            
-            // Add days of the current month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'calendar-day current-month';
-                dayElement.textContent = day;
-                
-                // Check if it's today
-                const today = new Date();
-                if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
-                    dayElement.classList.add('today');
-                }
-                
-                // Apply attendance status styling based on Google Sheets data
-const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-const dayData = calendarData[dateKey];
-
-if (dayData) {
-    const didiPresent = dayData.didi && dayData.didi.toLowerCase() === 'present';
-    const cookPresent = dayData.cook && dayData.cook.toLowerCase() === 'present';
-    
-    if (didiPresent && cookPresent) {
-        dayElement.classList.add('both-present');
-    } else if (didiPresent && !cookPresent) {
-        dayElement.classList.add('didi-only');
-    } else if (!didiPresent && cookPresent) {
-        dayElement.classList.add('cook-only');
-    } else {
-        dayElement.classList.add('both-absent');
-    }
-} else {
-    // No data for this day in Google Sheets - assume both absent
-    dayElement.classList.add('both-absent');
-}
-                
-                calendarGrid.appendChild(dayElement);
-            }
-            
-            // Fill remaining cells with next month's days
-            const totalCells = 42; // 6 rows × 7 days
-            const cellsUsed = startingDayOfWeek + daysInMonth;
-            for (let day = 1; cellsUsed + day - 1 < totalCells; day++) {
-                const nextMonthDay = document.createElement('div');
-                nextMonthDay.className = 'calendar-day other-month';
-                nextMonthDay.textContent = day;
-                calendarGrid.appendChild(nextMonthDay);
-            }
-        }
-
-        // Initialize the app
-        function initApp() {
-    // Check if user was already unlocked in this session
-    if (sessionUnlocked) {
-        isUnlocked = true;
-        showMainApp();
-        return;
-    }
-    
-    if (!isUnlocked) {
-        showLockScreen();
-        return;
-    }
-    
-    loadTodayData().then(() => {
-        updateUI();
+// Update last updated time
+function updateLastUpdatedTime() {
+    const now = new Date();
+    const timeString = now.toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
     });
-    scheduleReset();
+    document.getElementById('lastUpdated').textContent = `Last updated: ${timeString}`;
 }
-        // PIN Lock Functions
-        function showLockScreen() {
-            document.getElementById('lockScreen').style.display = 'block';
-            document.getElementById('mainApp').style.display = 'none';
-            stopAutoRefresh(); 
-        }
 
-        function showMainApp() {
-    document.getElementById('lockScreen').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'block';
-    loadTodayData().then(() => {
-        updateUI();
-    });
-    scheduleReset();
-    startAutoRefresh(); // Start auto-refresh when main app is shown
-}
-        function addPinDigit(digit) {
-            if (currentPin.length < 4) {
-                currentPin.push(parseInt(digit));
-                updatePinDisplay();
-                
-                if (currentPin.length === 4) {
-                    setTimeout(checkPin, 300);
-                }
-            }
-        }
-
-        function deletePinDigit() {
-            if (currentPin.length > 0) {
-                currentPin.pop();
-                updatePinDisplay();
-                hidePinError();
-            }
-        }
-
-        function clearPin() {
-            currentPin = [];
-            updatePinDisplay();
-            hidePinError();
-        }
-
-        function updatePinDisplay() {
-            for (let i = 1; i <= 4; i++) {
-                const dot = document.getElementById(`dot${i}`);
-                if (i <= currentPin.length) {
-                    dot.classList.add('filled');
-                } else {
-                    dot.classList.remove('filled');
-                }
-            }
-        }
-
-        function checkPin() {
-    const enteredPin = currentPin.join('');
-    const correctPin = pinConfig.join('');
-    
-    if (enteredPin === correctPin) {
-        isUnlocked = true;
-        sessionUnlocked = true; // Set session flag
-        showMainApp();
-        pinAttempts = 0;
-        startAutoRefresh(); // Start auto-refresh after successful unlock
-    } else {
-        pinAttempts++;
-        showPinError();
-        clearPin();
-        
-        // Lock for 30 seconds after 5 wrong attempts
-        if (pinAttempts >= 5) {
-            lockTemporarily();
-        }
-    }
-}
+// Auto-refresh functions
 function startAutoRefresh() {
     // Clear any existing timer
     if (autoRefreshTimer) {
@@ -1381,6 +907,7 @@ function startAutoRefresh() {
         });
     }, 15000); // 15 seconds
 }
+
 function stopAutoRefresh() {
     if (autoRefreshTimer) {
         clearInterval(autoRefreshTimer);
@@ -1389,135 +916,613 @@ function stopAutoRefresh() {
     }
 }
 
-        function showPinError() {
-            const errorElement = document.getElementById('pinError');
-            errorElement.classList.add('show');
+// Google Apps Script API functions with better error handling and JSONP fallback
+async function loadTodayData() {
+    if (location.hostname.endsWith("github.io")) {
+        debugLog('Using JSONP fallback due to GitHub Pages CORS');
+        return loadTodayDataJSONP();
+    }
+    try {
+        debugLog('Starting loadTodayData');
+        
+        const url = `${APPS_SCRIPT_URL}?action=loadToday&cacheBust=${Date.now()}`;
+        debugLog('Fetching URL:', url);
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-cache',
+            redirect: 'follow'
+        });
+        
+        debugLog('Response status:', response.status);
+        debugLog('Response headers:', Object.fromEntries(response.headers.entries()));
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-
-        function hidePinError() {
-            const errorElement = document.getElementById('pinError');
-            errorElement.classList.remove('show');
-        }
-
-        function lockTemporarily() {
-            const keypadButtons = document.querySelectorAll('.pin-key');
-            keypadButtons.forEach(button => button.disabled = true);
-            
-            document.getElementById('pinError').textContent = 'Too many attempts. Locked for 30 seconds.';
-            
-            setTimeout(() => {
-                keypadButtons.forEach(button => button.disabled = false);
-                document.getElementById('pinError').textContent = 'Incorrect PIN. Try again.';
-                hidePinError();
-                pinAttempts = 0;
-            }, 30000);
-        }
-
-        function toggleAttendance(person) {
-            const currentStatus = attendanceData[person].status;
-            const newStatus = currentStatus === 'present' ? 'absent' : 'present';
-            
-            attendanceData[person].status = newStatus;
-            
-            if (newStatus === 'present') {
-                // Store timestamp in India time with 24-hour format
-                const now = new Date();
-                attendanceData[person].timestamp = now.toLocaleString('en-IN', {
-                    timeZone: 'Asia/Kolkata',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                });
-            } else {
-                attendanceData[person].timestamp = null;
-            }
-            
+        
+        const result = await response.json();
+        debugLog('Response data:', result);
+        
+        if (result.success) {
+            attendanceData = result.data;
             updateUI();
-            
-            // Sync to Google Sheets via Apps Script
-            updateAttendanceData().then(success => {
-                if (success) {
-                    loadStats(); // Refresh stats after successful update
-                    loadCalendarData(); // Refresh calendar after successful update
-                }
-            });
+            updateLastUpdatedTime();
+            await loadStats();
+            await loadCalendarData();
+            setSyncIndicator('success');
+            return true;
+        } else {
+            throw new Error(result.error || 'Failed to load data');
         }
-
-        function updateUI() {
-            debugLog("Updating UI based on attendanceData:", attendanceData);
-
-            ['didi', 'cook'].forEach(role => {
-                const button = document.getElementById(role + 'Button');
-                const status = attendanceData[role]?.status || 'absent';
-
-                if (status === 'present') {
-                    button.classList.add('present');
-                    button.classList.remove('absent');
-                } else {
-                    button.classList.remove('present');
-                    button.classList.add('absent');
-                }
-            });
+    } catch (error) {
+        debugLog('Error in loadTodayData:', error);
+        console.error('Error loading data:', error);
+        
+        // Try JSONP fallback for CORS issues
+        if (error.message.includes('CORS') || error.message.includes('fetch')) {
+            debugLog('Attempting JSONP fallback');
+            return await loadTodayDataJSONP();
         }
+        
+        setSyncIndicator('error');
+        return false;
+    }
+}
 
-        function scheduleReset() {
-            const now = new Date();
-            const midnight = new Date();
-            
-            // Set to next midnight in India time
-            midnight.setHours(24, 0, 0, 0);
-            
-            const msUntilMidnight = midnight.getTime() - now.getTime();
-            
-            setTimeout(() => {
-                // Reset attendance at midnight
-                attendanceData.didi.status = 'absent';
-                attendanceData.didi.timestamp = null;
-                attendanceData.cook.status = 'absent';
-                attendanceData.cook.timestamp = null;
-                
+// JSONP fallback for CORS issues
+function loadTodayDataJSONP() {
+    return new Promise((resolve) => {
+        const callbackName = 'loadTodayCallback_' + Date.now();
+        const script = document.createElement('script');
+        
+        window[callbackName] = function(result) {
+            debugLog('JSONP response:', result);
+            if (result.success) {
+                attendanceData = result.data;
                 updateUI();
-                
-                // Sync reset to sheets
-                updateAttendanceData();
-                
-                // Schedule next reset
-                scheduleReset();
-            }, msUntilMidnight);
+                updateLastUpdatedTime();
+                loadStats();
+                loadCalendarData();
+                setSyncIndicator('success');
+                resolve(true);
+            } else {
+                setSyncIndicator('error');
+                resolve(false);
+            }
+            document.head.removeChild(script);
+            delete window[callbackName];
+        };
+        
+        script.onerror = function() {
+            setSyncIndicator('error');
+            document.head.removeChild(script);
+            delete window[callbackName];
+            resolve(false);
+        };
+        
+        script.src = `${APPS_SCRIPT_URL}?action=loadToday&callback=${callbackName}&cacheBust=${Date.now()}`;
+        document.head.appendChild(script);
+    });
+}
+
+async function updateAttendanceData() {
+    if (location.hostname.endsWith("github.io")) {
+        debugLog('Using alternative POST method due to GitHub Pages CORS');
+        return updateAttendanceDataAlternative();
+    }
+    try {
+        debugLog('Starting updateAttendanceData');
+        
+        const requestBody = {
+            action: 'updateAttendance',
+            attendanceData: attendanceData,
+            timestamp: new Date().toISOString(),
+            origin: window.location.origin,
+            date: new Date().toLocaleDateString('en-CA') // YYYY-MM-DD format
+        };
+        
+        debugLog('Request body:', requestBody);
+        
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'cors',
+            cache: 'no-cache',
+            redirect: 'follow',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody)
+        });
+        
+        debugLog('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        debugLog('Response data:', result);
+        
+        if (result.success) {
+            updateLastUpdatedTime();
+            setSyncIndicator('success');
+            return true;
+        } else {
+            throw new Error(result.error || 'Failed to update data');
+        }
+    } catch (error) {
+        debugLog('Error in updateAttendanceData:', error);
+        console.error('Error updating data:', error);
+        
+        // Try alternative sync method for CORS issues
+        if (error.message.includes('CORS') || error.message.includes('fetch')) {
+            debugLog('Attempting alternative sync method');
+            return await updateAttendanceDataAlternative();
+        }
+        
+        setSyncIndicator('error');
+        return false;
+    }
+}
+
+// Alternative sync method using form submission
+function updateAttendanceDataAlternative() {
+    return new Promise((resolve) => {
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.name = 'sync_frame';
+        document.body.appendChild(iframe);
+        
+        const form = document.createElement('form');
+        form.target = 'sync_frame';
+        form.method = 'POST';
+        form.action = APPS_SCRIPT_URL;
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'updateAttendance';
+        form.appendChild(actionInput);
+        
+        const dataInput = document.createElement('input');
+        dataInput.type = 'hidden';
+        dataInput.name = 'attendanceData';
+        dataInput.value = JSON.stringify(attendanceData);
+        form.appendChild(dataInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+        
+        setTimeout(() => {
+            document.body.removeChild(form);
+            document.body.removeChild(iframe);
+            updateLastUpdatedTime();
+            setSyncIndicator('success');
+            resolve(true);
+        }, 2000);
+    });
+}
+
+async function loadStats() {
+    if (location.hostname.endsWith("github.io")) {
+        debugLog('Using JSONP fallback for loadStats due to GitHub Pages CORS');
+        return loadStatsJSONP();
+    }
+
+    try {
+        debugLog('Starting loadStats');
+
+        const url = `${APPS_SCRIPT_URL}?action=loadStats&cacheBust=${Date.now()}`;
+        const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-cache',
+            redirect: 'follow'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        // Keyboard support for PIN entry
-        document.addEventListener('keydown', function(event) {
-            if (isUnlocked) return;
-            
-            const key = event.key;
-            
-            if (key >= '0' && key <= '9') {
-                addPinDigit(key);
-            } else if (key === 'Backspace') {
-                deletePinDigit();
-            } else if (key === 'Delete' || key === 'Escape') {
-                clearPin();
+        const result = await response.json();
+        debugLog('Stats response:', result);
+
+        if (result.success) {
+            updateStatsUI(result.stats);
+            return true;
+        } else {
+            throw new Error(result.error || 'Failed to load stats');
+        }
+    } catch (error) {
+        debugLog('Error in loadStats:', error);
+        console.error('Error loading stats:', error);
+        return false;
+    }
+}
+
+function loadStatsJSONP() {
+    return new Promise((resolve) => {
+        const callbackName = 'loadStatsCallback_' + Date.now();
+        const script = document.createElement('script');
+
+        window[callbackName] = function(result) {
+            debugLog('Stats JSONP response:', result);
+            if (result.success) {
+                updateStatsUI(result.stats);
+                resolve(true);
+            } else {
+                resolve(false);
             }
+            document.head.removeChild(script);
+            delete window[callbackName];
+        };
+
+        script.onerror = function() {
+            document.head.removeChild(script);
+            delete window[callbackName];
+            resolve(false);
+        };
+
+        script.src = `${APPS_SCRIPT_URL}?action=loadStats&callback=${callbackName}&cacheBust=${Date.now()}`;
+        document.head.appendChild(script);
+    });
+}
+
+// Load calendar data for the current month
+async function loadCalendarData() {
+    try {
+        debugLog('Starting loadCalendarData');
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
+
+        const url = `${APPS_SCRIPT_URL}?action=loadCalendar&year=${year}&month=${month}&cacheBust=${Date.now()}`;
+        const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-cache',
+            redirect: 'follow'
         });
 
-        // Prevent right-click context menu (optional security measure)
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-        });
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
-        // Prevent text selection (optional security measure)
-        document.addEventListener('selectstart', function(e) {
-            if (e.target.tagName !== 'INPUT') {
-                e.preventDefault();
+        const result = await response.json();
+        debugLog('Calendar response:', result);
+
+        if (result.success) {
+            calendarData = result.calendar || {};
+            renderCalendar();
+            return true;
+        } else {
+            throw new Error(result.error || 'Failed to load calendar');
+        }
+    } catch (error) {
+        debugLog('Error in loadCalendarData:', error);
+        console.error('Error loading calendar:', error);
+        // Render calendar anyway with empty data
+        renderCalendar();
+        return false;
+    }
+}
+
+function updateStatsUI(stats) {
+    document.getElementById('didi7days').textContent = `${stats.didi.days7}/7`;
+    document.getElementById('didi30days').textContent = `${stats.didi.days30}/30`;
+    document.getElementById('cook7days').textContent = `${stats.cook.days7}/7`;
+    document.getElementById('cook30days').textContent = `${stats.cook.days30}/30`;
+}
+
+// Render calendar
+function renderCalendar() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    
+    // Update calendar title
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+    document.getElementById('calendarTitle').textContent = `${monthNames[month]} ${year}`;
+    
+    const calendarGrid = document.getElementById('calendarGrid');
+    calendarGrid.innerHTML = '';
+    
+    // Add day headers
+    const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    dayHeaders.forEach(day => {
+        const header = document.createElement('div');
+        header.className = 'calendar-header';
+        header.textContent = day;
+        calendarGrid.appendChild(header);
+    });
+    
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    // Add empty cells for days before the first of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'calendar-day other-month';
+        const prevMonthDay = new Date(year, month, 0 - (startingDayOfWeek - 1 - i));
+        emptyDay.textContent = prevMonthDay.getDate();
+        calendarGrid.appendChild(emptyDay);
+    }
+    
+    // Add days of the current month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day current-month';
+        dayElement.textContent = day;
+        
+        // Check if it's today
+        const today = new Date();
+        if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+            dayElement.classList.add('today');
+        }
+        
+        // Apply attendance status styling based on Google Sheets data
+        const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayData = calendarData[dateKey];
+
+        if (dayData) {
+            const didiPresent = dayData.didi && dayData.didi.toLowerCase() === 'present';
+            const cookPresent = dayData.cook && dayData.cook.toLowerCase() === 'present';
+            
+            if (didiPresent && cookPresent) {
+                dayElement.classList.add('both-present');
+            } else if (didiPresent && !cookPresent) {
+                dayElement.classList.add('didi-only');
+            } else if (!didiPresent && cookPresent) {
+                dayElement.classList.add('cook-only');
+            } else {
+                dayElement.classList.add('both-absent');
             }
+        } else {
+            // No data for this day in Google Sheets - assume both absent
+            dayElement.classList.add('both-absent');
+        }
+        
+        calendarGrid.appendChild(dayElement);
+    }
+    
+    // Fill remaining cells with next month's days
+    const totalCells = 42; // 6 rows × 7 days
+    const cellsUsed = startingDayOfWeek + daysInMonth;
+    for (let day = 1; cellsUsed + day - 1 < totalCells; day++) {
+        const nextMonthDay = document.createElement('div');
+        nextMonthDay.className = 'calendar-day other-month';
+        nextMonthDay.textContent = day;
+        calendarGrid.appendChild(nextMonthDay);
+    }
+}
+
+// Initialize the app
+function initApp() {
+    // Check if user was already unlocked in this session
+    if (sessionUnlocked) {
+        isUnlocked = true;
+        showMainApp();
+        return;
+    }
+    
+    if (!isUnlocked) {
+        showLockScreen();
+        return;
+    }
+    
+    loadTodayData().then(() => {
+        updateUI();
+    });
+    scheduleReset();
+}
+
+// PIN Lock Functions
+function showLockScreen() {
+    document.getElementById('lockScreen').style.display = 'block';
+    document.getElementById('mainApp').style.display = 'none';
+    stopAutoRefresh(); 
+}
+
+function showMainApp() {
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    loadTodayData().then(() => {
+        updateUI();
+    });
+    scheduleReset();
+    startAutoRefresh(); // Start auto-refresh when main app is shown
+}
+
+function addPinDigit(digit) {
+    if (currentPin.length < 4) {
+        currentPin.push(parseInt(digit));
+        updatePinDisplay();
+        
+        if (currentPin.length === 4) {
+            setTimeout(checkPin, 300);
+        }
+    }
+}
+
+function deletePinDigit() {
+    if (currentPin.length > 0) {
+        currentPin.pop();
+        updatePinDisplay();
+        hidePinError();
+    }
+}
+
+function clearPin() {
+    currentPin = [];
+    updatePinDisplay();
+    hidePinError();
+}
+
+function updatePinDisplay() {
+    for (let i = 1; i <= 4; i++) {
+        const dot = document.getElementById(`dot${i}`);
+        if (i <= currentPin.length) {
+            dot.classList.add('filled');
+        } else {
+            dot.classList.remove('filled');
+        }
+    }
+}
+
+function checkPin() {
+    const enteredPin = currentPin.join('');
+    const correctPin = JJooKKOok.join('');
+    
+    if (enteredPin === correctPin) {
+        isUnlocked = true;
+        sessionUnlocked = true; // Set session flag
+        showMainApp();
+        pinAttempts = 0;
+    } else {
+        pinAttempts++;
+        showPinError();
+        clearPin();
+        
+        // Lock for 30 seconds after 5 wrong attempts
+        if (pinAttempts >= 5) {
+            lockTemporarily();
+        }
+    }
+}
+
+function showPinError() {
+    const errorElement = document.getElementById('pinError');
+    errorElement.classList.add('show');
+}
+
+function hidePinError() {
+    const errorElement = document.getElementById('pinError');
+    errorElement.classList.remove('show');
+}
+
+function lockTemporarily() {
+    const keypadButtons = document.querySelectorAll('.pin-key');
+    keypadButtons.forEach(button => button.disabled = true);
+    
+    document.getElementById('pinError').textContent = 'Too many attempts. Locked for 30 seconds.';
+    
+    setTimeout(() => {
+        keypadButtons.forEach(button => button.disabled = false);
+        document.getElementById('pinError').textContent = 'Incorrect PIN. Try again.';
+        hidePinError();
+        pinAttempts = 0;
+    }, 30000);
+}
+
+function toggleAttendance(person) {
+    const currentStatus = attendanceData[person].status;
+    const newStatus = currentStatus === 'present' ? 'absent' : 'present';
+    
+    attendanceData[person].status = newStatus;
+    
+    if (newStatus === 'present') {
+        // Store timestamp in India time with 24-hour format
+        const now = new Date();
+        attendanceData[person].timestamp = now.toLocaleString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
         });
+    } else {
+        attendanceData[person].timestamp = null;
+    }
+    
+    updateUI();
+    
+    // Sync to Google Sheets via Apps Script
+    updateAttendanceData().then(success => {
+        if (success) {
+            loadStats(); // Refresh stats after successful update
+            loadCalendarData(); // Refresh calendar after successful update
+        }
+    });
+}
 
-        // Initialize when page loads
-        window.onload = initApp;
+function updateUI() {
+    debugLog("Updating UI based on attendanceData:", attendanceData);
 
-        // Handle visibility change (when user switches tabs/apps)
-        if (document.visibilityState === 'visible' && isUnlocked) {
+    ['didi', 'cook'].forEach(role => {
+        const button = document.getElementById(role + 'Button');
+        const status = attendanceData[role]?.status || 'absent';
+
+        if (status === 'present') {
+            button.classList.add('present');
+            button.classList.remove('absent');
+        } else {
+            button.classList.remove('present');
+            button.classList.add('absent');
+        }
+    });
+}
+
+function scheduleReset() {
+    const now = new Date();
+    const midnight = new Date();
+    
+    // Set to next midnight in India time
+    midnight.setHours(24, 0, 0, 0);
+    
+    const msUntilMidnight = midnight.getTime() - now.getTime();
+    
+    setTimeout(() => {
+        // Reset attendance at midnight
+        attendanceData.didi.status = 'absent';
+        attendanceData.didi.timestamp = null;
+        attendanceData.cook.status = 'absent';
+        attendanceData.cook.timestamp = null;
+        
+        updateUI();
+        
+        // Sync reset to sheets
+        updateAttendanceData();
+        
+        // Schedule next reset
+        scheduleReset();
+    }, msUntilMidnight);
+}
+
+// Keyboard support for PIN entry
+document.addEventListener('keydown', function(event) {
+    if (isUnlocked) return;
+    
+    const key = event.key;
+    
+    if (key >= '0' && key <= '9') {
+        addPinDigit(key);
+    } else if (key === 'Backspace') {
+        deletePinDigit();
+    } else if (key === 'Delete' || key === 'Escape') {
+        clearPin();
+    }
+});
+
+// Prevent right-click context menu (optional security measure)
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
+
+// Prevent text selection (optional security measure)
+document.addEventListener('selectstart', function(e) {
+    if (e.target.tagName !== 'INPUT') {
+        e.preventDefault();
+    }
+});
+
+// Enhanced visibility change handler
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible' && isUnlocked) {
         // Refresh data when user returns to the app
         setSyncIndicator('loading');
         loadTodayData().then(() => {
@@ -1531,15 +1536,20 @@ function stopAutoRefresh() {
     } else if (document.visibilityState === 'hidden') {
         // Optionally stop auto-refresh when page is hidden to save resources
         // Uncomment the line below if you want to pause refresh when page is not visible
-        stopAutoRefresh();
+        // stopAutoRefresh();
     }
 });
+
+// Clean up on page unload
 window.addEventListener('beforeunload', function() {
     stopAutoRefresh();
 });
-        
-        // Initialize app immediately
-        initApp();
+
+// Initialize when page loads
+window.onload = initApp;
+
+// Initialize app immediately
+initApp();
     </script>
 </body>
 </html>
