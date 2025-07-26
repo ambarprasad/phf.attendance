@@ -194,23 +194,22 @@
         }
 
         .sync-indicator {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .sync-indicator.loading {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    /* Default loading state */
     background: #ffc107;
     position: relative;
     overflow: hidden;
 }
 
-.sync-indicator.loading::before {
+/* Default loading spinner */
+.sync-indicator::before {
     content: '';
     position: absolute;
     top: 2px;
@@ -223,7 +222,7 @@
     animation: spin 1s linear infinite;
 }
 
-.sync-indicator.loading::after {
+.sync-indicator::after {
     content: '';
     position: absolute;
     top: 4px;
@@ -235,23 +234,36 @@
     border-radius: 50%;
     animation: spin 1.5s linear infinite reverse;
 }
-        .sync-indicator.success {
-            background: #00ff88;
-            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-        }
 
-        .sync-indicator.error {
-            background: #ff6b6b;
-            color: white;
-            font-weight: bold;
-            font-size: 10px;
-            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
-        }
+/* Success state - overrides default loading */
+.sync-indicator.success {
+    background: #00ff88;
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+.sync-indicator.success::before,
+.sync-indicator.success::after {
+    display: none;
+}
+
+/* Error state - overrides default loading */
+.sync-indicator.error {
+    background: #ff6b6b;
+    color: white;
+    font-weight: bold;
+    font-size: 10px;
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+}
+
+.sync-indicator.error::before,
+.sync-indicator.error::after {
+    display: none;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
         .last-updated {
             color: #b0b0b0;
@@ -741,39 +753,6 @@
                 </button>
             </div>
         </div>
-
-        <div class="stats-container">
-            <div class="stats-title">Attendance Summary</div>
-            
-            <div class="person-stats">
-                <div class="person-stats-name">Didi</div>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-label">7 Days</div>
-                        <div class="stat-value" id="didi7days">0/7</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">30 Days</div>
-                        <div class="stat-value" id="didi30days">0/30</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="person-stats">
-                <div class="person-stats-name">Cook</div>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-label">Last 7 Days</div>
-                        <div class="stat-value" id="cook7days">0/7</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">Last 30 Days</div>
-                        <div class="stat-value" id="cook30days">0/30</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <div class="calendar-container">
             <div class="calendar-title" id="calendarTitle">Loading Calendar...</div>
             <div class="calendar-grid" id="calendarGrid">
@@ -795,6 +774,37 @@
                 <div class="legend-item">
                     <div class="legend-color cook-only"></div>
                     <span>Cook Only</span>
+                </div>
+            </div>
+        </div>
+        <div class="stats-container">
+            <div class="stats-title">Attendance Summary</div>
+            
+            <div class="person-stats">
+                <div class="person-stats-name">Didi</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">7 Days</div>
+                        <div class="stat-value" id="didi7days">0/7</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">30 Days</div>
+                        <div class="stat-value" id="didi30days">0/30</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="person-stats">
+                <div class="person-stats-name">Cook</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">7 Days</div>
+                        <div class="stat-value" id="cook7days">0/7</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">30 Days</div>
+                        <div class="stat-value" id="cook30days">0/30</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -828,25 +838,36 @@
 
         // Sync indicator functions
         function setSyncIndicator(state) {
-            const indicator = document.getElementById('syncIndicator');
-            indicator.className = `sync-indicator ${state}`;
+    const indicator = document.getElementById('syncIndicator');
+    
+    switch(state) {
+        case 'success':
+            indicator.className = 'sync-indicator success';
+            indicator.innerHTML = '';
+            // Auto-return to loading after 3 seconds
+            setTimeout(() => {
+                indicator.className = 'sync-indicator';
+                indicator.innerHTML = '';
+            }, 3000);
+            break;
             
-            switch(state) {
-                case 'loading':
-                    indicator.innerHTML = '';
-                    break;
-                case 'success':
-                    indicator.innerHTML = '';
-                    break;
-                case 'error':
-                    indicator.innerHTML = '!';
-                    break;
-                default:
-                    indicator.innerHTML = '';
-                    break;
-            }
-        }
-
+        case 'error':
+            indicator.className = 'sync-indicator error';
+            indicator.innerHTML = '!';
+            // Auto-return to loading after 5 seconds (longer for errors)
+            setTimeout(() => {
+                indicator.className = 'sync-indicator';
+                indicator.innerHTML = '';
+            }, 5000);
+            break;
+            
+        default:
+        case 'loading':
+            indicator.className = 'sync-indicator';
+            indicator.innerHTML = '';
+            break;
+    }
+}
         // Update last updated time
         function updateLastUpdatedTime() {
             const now = new Date();
@@ -869,7 +890,6 @@
                 return loadTodayDataJSONP();
             }
             try {
-                setSyncIndicator('loading');
                 debugLog('Starting loadTodayData');
                 
                 const url = `${APPS_SCRIPT_URL}?action=loadToday&cacheBust=${Date.now()}`;
@@ -960,7 +980,6 @@
                 return updateAttendanceDataAlternative();
             }
             try {
-                setSyncIndicator('loading');
                 debugLog('Starting updateAttendanceData');
                 
                 const requestBody = {
